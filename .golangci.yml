@@ -1,0 +1,22 @@
+# golangci-lint configuration used for CI
+run:
+  tests: true
+  timeout: 5m
+  skip-files:
+    - ".*\\.pb\\.go"
+  skip-dirs-use-default: true
+
+linters-settings:
+  goimports:
+    local-prefixes: github.com/ruicao93/antrea-operator
+
+linters:
+  disable-all: true
+  enable:
+    - misspell
+    - gofmt
+    - deadcode
+    - staticcheck
+    - gosec
+    - goimports
+    - vet
