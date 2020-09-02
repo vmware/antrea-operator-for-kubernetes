@@ -3,15 +3,23 @@ module github.com/ruicao93/antrea-operator
 go 1.13
 
 require (
+	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
+	github.com/onsi/gomega v1.10.1
+	github.com/openshift/api v0.0.0-20200701144905-de5b010b2b38
+	github.com/openshift/cluster-network-operator v0.0.0-20200820075439-92e466db53cc
 	github.com/operator-framework/operator-sdk v0.17.2
 	github.com/spf13/pflag v1.0.5
-	k8s.io/api v0.17.4
-	k8s.io/apimachinery v0.17.4
+	golang.org/x/tools v0.0.0-20200902012652-d1954cc86c82 // indirect
+	gopkg.in/yaml.v2 v2.3.0
+	k8s.io/api v0.18.4
+	k8s.io/apimachinery v0.18.4
 	k8s.io/client-go v12.0.0+incompatible
 	sigs.k8s.io/controller-runtime v0.5.2
 )
 
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.2+incompatible // Required by OLM
+	k8s.io/api => k8s.io/api v0.17.4 // Required by prometheus-operator
+	k8s.io/apimachinery => k8s.io/apimachinery v0.17.4 // Required by prometheus-operator
 	k8s.io/client-go => k8s.io/client-go v0.17.4 // Required by prometheus-operator
 )

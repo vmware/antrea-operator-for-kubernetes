@@ -1,8 +1,12 @@
+/* Copyright © 2020 VMware, Inc. All Rights Reserved.
+   SPDX-License-Identifier: Apache-2.0 */
+
 package pod
 
 import (
 	"context"
 
+	"github.com/openshift/cluster-network-operator/pkg/controller/statusmanager"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,7 +31,7 @@ var log = logf.Log.WithName("controller_pod")
 
 // Add creates a new Pod Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
+func Add(mgr manager.Manager, status *statusmanager.StatusManager) error {
 	return add(mgr, newReconciler(mgr))
 }
 
@@ -84,6 +88,11 @@ type ReconcilePod struct {
 func (r *ReconcilePod) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Pod")
+
+	// TODO: Implement PodController logic in following patches.
+	if request.Name != "NotForTest" {
+		return reconcile.Result{}, nil
+	}
 
 	// Fetch the Pod instance
 	instance := &corev1.Pod{}
