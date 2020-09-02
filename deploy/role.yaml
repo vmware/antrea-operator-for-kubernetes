@@ -1,67 +1,70 @@
-kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
 metadata:
   name: antrea-operator
 rules:
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  - services
-  - services/finalizers
-  - endpoints
-  - persistentvolumeclaims
-  - events
-  - configmaps
-  - secrets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - apps
-  resources:
-  - deployments
-  - daemonsets
-  - replicasets
-  - statefulsets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - monitoring.coreos.com
-  resources:
-  - servicemonitors
-  verbs:
-  - "get"
-  - "create"
-- apiGroups:
-  - apps
-  resources:
-  - deployments/finalizers
-  resourceNames:
-  - antrea-operator
-  verbs:
-  - "update"
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  verbs:
-  - get
-- apiGroups:
-  - apps
-  resources:
-  - replicasets
-  - deployments
+- apiGroups: [""]
+  resources: [pods, configmaps, namespaces, serviceaccounts, secrets, services]
+  verbs: [create, get, list, patch, delete, update, watch, deletecollection]
+- apiGroups: [apps]
+  resources: [deployments, daemonsets]
+  verbs: [create, get, list, patch, delete, update, watch]
+- apiGroups: [apiextensions.k8s.io]
+  resources: [customresourcedefinitions]
+  verbs: [create, get, list, patch, update, watch, delete]
+- apiGroups: [rbac.authorization.k8s.io]
+  resources: [clusterroles, clusterrolebindings]
+  verbs: [create, get, list, patch, update, watch, delete]
+- apiGroups: [config.openshift.io]
+  resources: [clusteroperators, clusteroperators/status]
+  verbs: [create, get, list, patch, update, watch, delete]
+- apiGroups: [config.openshift.io]
+  resources: [networks, networks/finalizers]
+  verbs: [get, list, watch, patch, update]
+- apiGroups: [operator.antrea.vmware.com]
+  resources: [antreainstalls, antreainstalls/status]
+  verbs: [get, list, watch, create,patch, update]
+# Required by antrea-agent, antrea-controller and antctl
+- apiGroups: [""]
+  resources: [nodes]
+  verbs: [get, watch, list]
+- apiGroups: [""]
+  resources: [pods, endpoints]
+  verbs: [get, watch, list, delete]
+- apiGroups: [authentication.k8s.io]
+  resources: [tokenreviews]
+  verbs: [create]
+- apiGroups: [authorization.k8s.io]
+  resources: [subjectaccessreviews]
+  verbs: [create]
+- apiGroups: [apiregistration.k8s.io]
+  resources: [apiservices]
+  verbs: [get, create, update, delete]
+- apiGroups: [networking.k8s.io]
+  resources: [networkpolicies]
+  verbs: [get, watch, list]
+- apiGroups: [ops.antrea.tanzu.vmware.com]
+  resources: [traceflows, traceflows/status]
+  verbs: [create, get, list, patch, update, watch, delete, delete]
+- apiGroups: [clusterinformation.antrea.tanzu.vmware.com]
+  resources: [antreaagentinfos, antreacontrollerinfos]
+  verbs: [get, list, create, update, delete, delete]
+- apiGroups: [networking.antrea.tanzu.vmware.com]
+  resources: [networkpolicies, appliedtogroups, addressgroups]
+  verbs: [get, watch, list, delete]
+- apiGroups: [security.antrea.tanzu.vmware.com]
+  resources: [clusternetworkpolicies]
+  verbs: [get, watch, list, delete]
+- apiGroups: [system.antrea.tanzu.vmware.com]
+  resources: [controllerinfos, agentinfos, supportbundles, supportbundles/download]
+  verbs: [get, watch, list, post, delete]
+- nonResourceURLs:
+  - /agentinfo
+  - /addressgroups
+  - /appliedtogroups
+  - /networkpolicies
+  - /ovsflows
+  - /ovstracing
+  - /podinterfaces
   verbs:
   - get
