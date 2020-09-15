@@ -16,10 +16,11 @@ ENV OPERATOR=/usr/local/bin/antrea-operator \
     USER_UID=1001 \
     USER_NAME=antrea-operator
 
-# install operator binary
-COPY --from=antrea-operator-build /antrea-operator/build/_output/bin/antrea-operator ${OPERATOR}
 
 COPY build/bin /usr/local/bin
+# install operator binary
+COPY --from=antrea-operator-build /antrea-operator/build/_output/bin/antrea-operator ${OPERATOR}
+COPY manifest /manifest
 RUN  /usr/local/bin/user_setup
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
