@@ -5,39 +5,42 @@ package pod
 
 import (
 	"context"
+	"fmt"
+	"time"
 
+	"github.com/openshift/cluster-network-operator/pkg/apply"
 	"github.com/openshift/cluster-network-operator/pkg/controller/statusmanager"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	uns "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+
+	"github.com/ruicao93/antrea-operator/pkg/controller/sharedinfo"
 )
 
 var log = logf.Log.WithName("controller_pod")
 
-/**
-* USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
-* business logic.  Delete these comments after modifying this file.*
- */
+// The periodic resync interval.
+// We will re-run the reconciliation logic, even if the NCP configuration
+// hasn't changed.
+var ResyncPeriod = 2 * time.Minute
 
 // Add creates a new Pod Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager, status *statusmanager.StatusManager) error {
-	return add(mgr, newReconciler(mgr))
+func Add(mgr manager.Manager, status *statusmanager.StatusManager, sharedInfo *sharedinfo.SharedInfo) error {
+	return add(mgr, newReconciler(mgr, status, sharedInfo))
 }
 
 // newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcilePod{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+func newReconciler(mgr manager.Manager, status *statusmanager.StatusManager, sharedInfo *sharedinfo.SharedInfo) reconcile.Reconciler {
+	return &ReconcilePod{client: mgr.GetClient(), scheme: mgr.GetScheme(), status: status, sharedInfo: sharedInfo}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -49,17 +52,13 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource Pod
-	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &appsv1.DaemonSet{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
 
-	// TODO(user): Modify this to be the types you create that are owned by the primary resource
-	// Watch for changes to secondary resource Pods and requeue the owner Pod
-	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &corev1.Pod{},
-	})
+	// Watch for changes to primary resource Pod
+	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -72,90 +71,77 @@ var _ reconcile.Reconciler = &ReconcilePod{}
 
 // ReconcilePod reconciles a Pod object
 type ReconcilePod struct {
-	// This client, initialized using mgr.Client() above, is a split client
-	// that reads objects from the cache and writes to the apiserver
-	client client.Client
-	scheme *runtime.Scheme
+	client     client.Client
+	scheme     *runtime.Scheme
+	status     *statusmanager.StatusManager
+	sharedInfo *sharedinfo.SharedInfo
 }
 
-// Reconcile reads that state of the cluster for a Pod object and makes changes based on the state read
-// and what is in the Pod.Spec
-// TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
-// a Pod as an example
-// Note:
-// The Controller will requeue the Request to be processed again if the returned error is non-nil or
-// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
+// Reconcile updates the ClusterOperator.Status to match the current state of the watched Deployments/DaemonSets
 func (r *ReconcilePod) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling Pod")
+	reqLogger.Info("Reconciling pod update")
 
-	// TODO: Implement PodController logic in following patches.
-	if request.Name != "NotForTest" {
+	if !r.isAntreaResource(&request) {
 		return reconcile.Result{}, nil
 	}
+	r.status.SetFromPods()
 
-	// Fetch the Pod instance
-	instance := &corev1.Pod{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
-			return reconcile.Result{}, nil
-		}
-		// Error reading the object - requeue the request.
-		return reconcile.Result{}, err
+	if err := r.recreateResourceIfNotExist(&request); err != nil {
+		return reconcile.Result{Requeue: true}, err
 	}
 
-	// Define a new Pod object
-	pod := newPodForCR(instance)
-
-	// Set Pod instance as the owner and controller
-	if err := controllerutil.SetControllerReference(instance, pod, r.scheme); err != nil {
-		return reconcile.Result{}, err
-	}
-
-	// Check if this Pod already exists
-	found := &corev1.Pod{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: pod.Name, Namespace: pod.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
-		err = r.client.Create(context.TODO(), pod)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-
-		// Pod created successfully - don't requeue
-		return reconcile.Result{}, nil
-	} else if err != nil {
-		return reconcile.Result{}, err
-	}
-
-	// Pod already exists - don't requeue
-	reqLogger.Info("Skip reconcile: Pod already exists", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
-	return reconcile.Result{}, nil
+	return reconcile.Result{RequeueAfter: ResyncPeriod}, nil
 }
 
-// newPodForCR returns a busybox pod with the same name/namespace as the cr
-func newPodForCR(cr *corev1.Pod) *corev1.Pod {
-	labels := map[string]string{
-		"app": cr.Name,
+func (r *ReconcilePod) isAntreaResource(request *reconcile.Request) bool {
+	if r.sharedInfo.AntreaAgentDaemonSetSpec != nil {
+		if request.Name == r.sharedInfo.AntreaAgentDaemonSetSpec.GetName() && request.Namespace == r.sharedInfo.AntreaAgentDaemonSetSpec.GetNamespace() {
+			return true
+		}
 	}
-	return &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name + "-pod",
-			Namespace: cr.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    "busybox",
-					Image:   "busybox",
-					Command: []string{"sleep", "3600"},
-				},
-			},
-		},
+	if r.sharedInfo.AntreaControllerDeploymentSpec != nil {
+		if request.Name == r.sharedInfo.AntreaControllerDeploymentSpec.GetName() && request.Namespace == r.sharedInfo.AntreaControllerDeploymentSpec.GetNamespace() {
+			return true
+		}
 	}
+	return false
+}
+
+func (r *ReconcilePod) recreateResourceIfNotExist(request *reconcile.Request) error {
+	r.sharedInfo.Lock()
+	defer r.sharedInfo.Unlock()
+	var curObject runtime.Object
+	var objectSpec *uns.Unstructured
+	if request.Name == r.sharedInfo.AntreaAgentDaemonSetSpec.GetName() && request.Namespace == r.sharedInfo.AntreaAgentDaemonSetSpec.GetNamespace() {
+		curObject = &appsv1.DaemonSet{}
+		objectSpec = r.sharedInfo.AntreaAgentDaemonSetSpec.DeepCopy()
+	} else {
+		curObject = &appsv1.Deployment{}
+		objectSpec = r.sharedInfo.AntreaControllerDeploymentSpec.DeepCopy()
+	}
+	err := r.client.Get(context.TODO(), request.NamespacedName, curObject)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			log.Info(fmt.Sprintf("K8s resource - '%s' dose not exist", request.Name))
+		} else {
+			log.Error(err, fmt.Sprintf("Could not retrieve K8s resource - '%s'", request.Name))
+			r.status.SetDegraded(statusmanager.OperatorConfig, "ApplyObjectsError", fmt.Sprintf("Failed to apply objects: %v", err))
+			return err
+		}
+	} else {
+		log.Info(fmt.Sprintf("K8s resource - '%s' already exists", request.Name))
+		return nil
+	}
+	if err = apply.ApplyObject(context.TODO(), r.client, objectSpec); err != nil {
+		log.Error(
+			err, fmt.Sprintf("could not apply (%s) %s/%s",
+				objectSpec.GroupVersionKind(), objectSpec.GetNamespace(), objectSpec.GetName()))
+		r.status.SetDegraded(
+			statusmanager.OperatorConfig, "ApplyOperatorConfig",
+			fmt.Sprintf("Failed to apply operator configuration: %v", err))
+		return err
+	}
+	log.Info(fmt.Sprintf("Recreated K8s resource: %s", request.Name))
+	return nil
 }

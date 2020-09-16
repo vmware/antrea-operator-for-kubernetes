@@ -12,11 +12,12 @@ import (
 	"github.com/openshift/cluster-network-operator/pkg/controller/statusmanager"
 	"github.com/openshift/cluster-network-operator/pkg/render"
 	k8sutil "github.com/openshift/cluster-network-operator/pkg/util/k8s"
-
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	uns "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -29,6 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	operatorv1 "github.com/ruicao93/antrea-operator/pkg/apis/operator/v1"
+	"github.com/ruicao93/antrea-operator/pkg/controller/sharedinfo"
 	operatortypes "github.com/ruicao93/antrea-operator/pkg/types"
 )
 
@@ -36,13 +38,13 @@ var log = logf.Log.WithName("controller_config")
 
 // Add creates a new ConfigMap Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager, status *statusmanager.StatusManager) error {
-	return add(mgr, newReconciler(mgr, status))
+func Add(mgr manager.Manager, status *statusmanager.StatusManager, sharedInfo *sharedinfo.SharedInfo) error {
+	return add(mgr, newReconciler(mgr, status, sharedInfo))
 }
 
 // newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager, status *statusmanager.StatusManager) reconcile.Reconciler {
-	return &ReconcileConfig{client: mgr.GetClient(), scheme: mgr.GetScheme(), status: status}
+func newReconciler(mgr manager.Manager, status *statusmanager.StatusManager, sharedInfo *sharedinfo.SharedInfo) reconcile.Reconciler {
+	return &ReconcileConfig{client: mgr.GetClient(), scheme: mgr.GetScheme(), status: status, sharedInfo: sharedInfo, mapper: mgr.GetRESTMapper()}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -75,9 +77,11 @@ var _ reconcile.Reconciler = &ReconcileConfig{}
 type ReconcileConfig struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
-	client client.Client
-	scheme *runtime.Scheme
-	status *statusmanager.StatusManager
+	client     client.Client
+	scheme     *runtime.Scheme
+	status     *statusmanager.StatusManager
+	mapper     meta.RESTMapper
+	sharedInfo *sharedinfo.SharedInfo
 
 	appliedClusterConfig *configv1.Network
 	appliedOperConfig    *operatorv1.AntreaInstall
@@ -174,14 +178,15 @@ func (r *ReconcileConfig) Reconcile(request reconcile.Request) (reconcile.Result
 			return reconcile.Result{Requeue: true}, err
 		}
 
+		// Update status and sharedInfo.
+		r.sharedInfo.Lock()
+		defer r.sharedInfo.Unlock()
+		if err = r.updateStatusManagerAndSharedInfo(objs, clusterConfig); err != nil {
+			return reconcile.Result{Requeue: true}, err
+		}
+
 		// Apply configurations.
 		for _, obj := range objs {
-			if err = controllerutil.SetControllerReference(clusterConfig, obj, r.scheme); err != nil {
-				log.Error(err, "failed to set owner reference")
-				r.status.SetDegraded(statusmanager.OperatorConfig, "ApplyObjectsError",
-					fmt.Sprintf("Failed to set owner reference: %v", err))
-				return reconcile.Result{Requeue: true}, err
-			}
 			if err = apply.ApplyObject(context.TODO(), r.client, obj); err != nil {
 				log.Error(err, "failed to apply resource")
 				r.status.SetDegraded(statusmanager.OperatorConfig, "ApplyObjectsError",
@@ -231,6 +236,57 @@ func (r *ReconcileConfig) Reconcile(request reconcile.Request) (reconcile.Result
 	r.appliedClusterConfig = clusterConfig
 	r.appliedOperConfig = operConfig
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileConfig) updateStatusManagerAndSharedInfo(objs []*uns.Unstructured, clusterConfig *configv1.Network) error {
+	var daemonSets, deployments []types.NamespacedName
+	var relatedObjects []configv1.ObjectReference
+	var daemonSetObject, deploymentObject *uns.Unstructured
+	for _, obj := range objs {
+		if obj.GetAPIVersion() == "apps/v1" && obj.GetKind() == "DaemonSet" {
+			daemonSets = append(daemonSets, types.NamespacedName{Namespace: obj.GetNamespace(), Name: obj.GetName()})
+			daemonSetObject = obj
+		} else if obj.GetAPIVersion() == "apps/v1" && obj.GetKind() == "Deployment" {
+			deployments = append(deployments, types.NamespacedName{Namespace: obj.GetNamespace(), Name: obj.GetName()})
+			deploymentObject = obj
+		}
+		restMapping, err := r.mapper.RESTMapping(obj.GroupVersionKind().GroupKind())
+		if err != nil {
+			log.Error(err, "failed to get REST mapping for storing related object")
+			continue
+		}
+		relatedObjects = append(relatedObjects, configv1.ObjectReference{
+			Group:     obj.GetObjectKind().GroupVersionKind().Group,
+			Resource:  restMapping.Resource.Resource,
+			Name:      obj.GetName(),
+			Namespace: obj.GetNamespace(),
+		})
+		if err = controllerutil.SetControllerReference(clusterConfig, obj, r.scheme); err != nil {
+			log.Error(err, "failed to set owner reference", "resource", obj.GetName())
+			r.status.SetDegraded(statusmanager.OperatorConfig, "ApplyObjectsError",
+				fmt.Sprintf("Failed to set owner reference: %v", err))
+			return err
+		}
+	}
+	if daemonSetObject == nil || deploymentObject == nil {
+		var missedResources []string
+		if daemonSetObject == nil {
+			missedResources = append(missedResources, fmt.Sprintf("DaemonSet: %s", operatortypes.AntreaAgentDaemonSetName))
+		}
+		if deploymentObject == nil {
+			missedResources = append(missedResources, fmt.Sprintf("Deployment: %s", operatortypes.AntreaControllerDeploymentName))
+		}
+		err := fmt.Errorf("configuration of resources %v is missing", missedResources)
+		log.Error(nil, err.Error())
+		r.status.SetDegraded(statusmanager.OperatorConfig, "ApplyObjectsError", err.Error())
+		return err
+	}
+	r.status.SetDaemonSets(daemonSets)
+	r.status.SetDeployments(deployments)
+	r.status.SetRelatedObjects(relatedObjects)
+	r.sharedInfo.AntreaAgentDaemonSetSpec = daemonSetObject.DeepCopy()
+	r.sharedInfo.AntreaControllerDeploymentSpec = deploymentObject.DeepCopy()
+	return nil
 }
 
 func (r *ReconcileConfig) getAppliedOperConfig() (*operatorv1.AntreaInstall, error) {
