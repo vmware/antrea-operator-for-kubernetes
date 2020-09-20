@@ -744,7 +744,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: antrea/antrea-ubuntu:v0.9.1
+        image: {{.AntreaImage}}
         name: antrea-controller
         ports:
         - containerPort: 10349
@@ -869,7 +869,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: antrea/antrea-ubuntu:v0.9.1
+        image: {{.AntreaImage}}
         livenessProbe:
           exec:
             command:
@@ -926,7 +926,7 @@ spec:
           name: xtables-lock
       - command:
         - start_ovs
-        image: antrea/antrea-ubuntu:v0.9.1
+        image: {{.AntreaImage}}
         livenessProbe:
           exec:
             command:
@@ -959,7 +959,7 @@ spec:
       initContainers:
       - command:
         - install_cni
-        image: antrea/antrea-ubuntu:v0.9.1
+        image: {{.AntreaImage}}
         name: install-cni
         resources:
           requests:
