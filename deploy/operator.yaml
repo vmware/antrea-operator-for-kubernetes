@@ -13,6 +13,7 @@ spec:
       labels:
         name: antrea-operator
     spec:
+      hostNetwork: true
       serviceAccountName: antrea-operator
       containers:
         - name: antrea-operator
