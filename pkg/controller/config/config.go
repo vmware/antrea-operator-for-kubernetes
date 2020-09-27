@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	configv1 "github.com/openshift/api/config/v1"
+	ocoperv1 "github.com/openshift/api/operator/v1"
+	"github.com/openshift/cluster-network-operator/pkg/network"
 	"github.com/openshift/cluster-network-operator/pkg/render"
 	"gopkg.in/yaml.v2"
 
@@ -208,13 +210,25 @@ func stringSliceEqual(a, b []string) bool {
 	return true
 }
 
-func GenerateRenderData(operConfig *operatorv1.AntreaInstall) (*render.RenderData, error) {
+// pluginCNIDir is the directory where plugins should install their CNI
+// configuration file. By default, it is where multus looks, unless multus
+// is disabled
+func pluginCNIConfDir(conf *ocoperv1.NetworkSpec) string {
+	if conf.DisableMultiNetwork == nil || !*conf.DisableMultiNetwork {
+		return network.MultusCNIConfDir
+	}
+	return network.SystemCNIConfDir
+}
+
+func GenerateRenderData(operatorNetwork *ocoperv1.Network, operConfig *operatorv1.AntreaInstall) (*render.RenderData, error) {
 	renderData := render.MakeRenderData()
 
 	renderData.Data[types.AntreaAgentConfigRenderKey] = operConfig.Spec.AntreaAgentConfig
 	renderData.Data[types.AntreaCNIConfigRenderKey] = operConfig.Spec.AntreaCNIConfig
 	renderData.Data[types.AntreaControllerConfigRenderKey] = operConfig.Spec.AntreaControllerConfig
 	renderData.Data[types.AntreaImageRenderKey] = operConfig.Spec.AntreaImage
+	renderData.Data[types.CNIConfDirRenderKey] = pluginCNIConfDir(&operatorNetwork.Spec)
+	renderData.Data[types.CNIBinDirRenderKey] = network.CNIBinDir
 
 	return &renderData, nil
 }

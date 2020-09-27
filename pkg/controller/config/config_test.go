@@ -10,6 +10,8 @@ import (
 	"github.com/ghodss/yaml"
 	. "github.com/onsi/gomega"
 	configv1 "github.com/openshift/api/config/v1"
+	ocoperv1 "github.com/openshift/api/operator/v1"
+	"github.com/openshift/cluster-network-operator/pkg/network"
 	"github.com/openshift/cluster-network-operator/pkg/render"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -28,6 +30,14 @@ var mockClusterConfig = configv1.Network{
 			},
 		},
 		NetworkType: "antrea",
+	},
+}
+
+var MockDisableMultiNetwork = false
+
+var mockOperatorNetwork = ocoperv1.Network{
+	Spec: ocoperv1.NetworkSpec{
+		DisableMultiNetwork: &MockDisableMultiNetwork,
 	},
 }
 
@@ -104,9 +114,10 @@ func TestRender(t *testing.T) {
 
 	clusterConfig := mockClusterConfig.DeepCopy()
 	operConfig := mockOperConfig.DeepCopy()
+	operatorNetwork := mockOperatorNetwork.DeepCopy()
 	err := FillConfigs(clusterConfig, operConfig)
 	g.Expect(err).ShouldNot(HaveOccurred())
-	renderData, err := GenerateRenderData(operConfig)
+	renderData, err := GenerateRenderData(operatorNetwork, operConfig)
 	g.Expect(err).ShouldNot(HaveOccurred())
 	objs, err := render.RenderDir("../../../manifest", renderData)
 	g.Expect(err).ShouldNot(HaveOccurred())
@@ -210,10 +221,23 @@ func TestGenerateRenderData(t *testing.T) {
 
 	operConfig := mockOperConfig.DeepCopy()
 	operConfig.Spec.AntreaImage = operatortypes.DefaultAntreaImage
-	renderData, err := GenerateRenderData(operConfig)
+	operatorNetwork := mockOperatorNetwork.DeepCopy()
+	renderData, err := GenerateRenderData(operatorNetwork, operConfig)
 	g.Expect(err).ShouldNot(HaveOccurred())
 	g.Expect(renderData.Data[operatortypes.AntreaAgentConfigRenderKey]).Should(Equal(operConfig.Spec.AntreaAgentConfig))
 	g.Expect(renderData.Data[operatortypes.AntreaCNIConfigRenderKey]).Should(Equal(operConfig.Spec.AntreaCNIConfig))
 	g.Expect(renderData.Data[operatortypes.AntreaControllerConfigRenderKey]).Should(Equal(operConfig.Spec.AntreaControllerConfig))
 	g.Expect(renderData.Data[operatortypes.AntreaImageRenderKey]).Should(Equal(operConfig.Spec.AntreaImage))
+	g.Expect(renderData.Data[operatortypes.CNIConfDirRenderKey]).Should(Equal(network.MultusCNIConfDir))
+	g.Expect(renderData.Data[operatortypes.CNIBinDirRenderKey]).Should(Equal(network.CNIBinDir))
+
+	operatorNetwork.Spec.DisableMultiNetwork = nil
+	g.Expect(err).ShouldNot(HaveOccurred())
+	g.Expect(renderData.Data[operatortypes.CNIConfDirRenderKey]).Should(Equal(network.MultusCNIConfDir))
+
+	disableMultiNetwork := true
+	operatorNetwork.Spec.DisableMultiNetwork = &disableMultiNetwork
+	renderData, err = GenerateRenderData(operatorNetwork, operConfig)
+	g.Expect(err).ShouldNot(HaveOccurred())
+	g.Expect(renderData.Data[operatortypes.CNIConfDirRenderKey]).Should(Equal(network.SystemCNIConfDir))
 }

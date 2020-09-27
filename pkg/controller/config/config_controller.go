@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	configv1 "github.com/openshift/api/config/v1"
+	ocoperv1 "github.com/openshift/api/operator/v1"
 	"github.com/openshift/cluster-network-operator/pkg/apply"
 	"github.com/openshift/cluster-network-operator/pkg/controller/statusmanager"
 	"github.com/openshift/cluster-network-operator/pkg/render"
@@ -116,6 +117,20 @@ func (r *ReconcileConfig) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{Requeue: true}, err
 	}
 
+	// Fetch the Network.operator.openshift.io instance
+	operatorNetwork := &ocoperv1.Network{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: operatortypes.ClusterOperatorNetworkName}, operatorNetwork)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			r.status.SetDegraded(statusmanager.OperatorConfig, "NoClusterNetworkOperatorConfig",
+				fmt.Sprintf("Cluster network operator configuration not found"))
+			return reconcile.Result{}, nil
+		}
+		// Error reading the object - requeue the request.
+		log.Error(err, "Unable to retrieve Network.operator.openshift.io object")
+		return reconcile.Result{Requeue: true}, err
+	}
+
 	// Fetch antrea-install CR.
 	operConfig := &operatorv1.AntreaInstall{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Namespace: operatortypes.OperatorNameSpace, Name: operatortypes.OperatorConfigName}, operConfig)
@@ -149,7 +164,7 @@ func (r *ReconcileConfig) Reconcile(request reconcile.Request) (reconcile.Result
 	}
 
 	// Generate render data.
-	renderData, err := GenerateRenderData(operConfig)
+	renderData, err := GenerateRenderData(operatorNetwork, operConfig)
 	if err != nil {
 		log.Error(err, "failed to generate render data")
 		r.status.SetDegraded(statusmanager.OperatorConfig, "RenderConfigError",

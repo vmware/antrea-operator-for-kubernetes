@@ -999,10 +999,10 @@ spec:
           name: antrea-config-fg74hdgb78
         name: antrea-config
       - hostPath:
-          path: /etc/cni/net.d
+          path: {{.CNIConfDir}}
         name: host-cni-conf
       - hostPath:
-          path: /opt/cni/bin
+          path: {{.CNIBinDir}}
         name: host-cni-bin
       - hostPath:
           path: /proc

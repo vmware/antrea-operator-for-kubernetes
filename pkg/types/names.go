@@ -18,12 +18,16 @@ const (
 	ServiceCIDROption = "serviceCIDR"
 	DefaultMTUOption  = "defaultMTU"
 
-	OperatorNameSpace  = "antrea-operator"
-	ClusterConfigName  = "cluster"
-	OperatorConfigName = "antrea-install"
+	OperatorNameSpace          = "antrea-operator"
+	ClusterConfigName          = "cluster"
+	OperatorConfigName         = "antrea-install"
+	ClusterOperatorNetworkName = "cluster"
 
 	AntreaNamespace                = "kube-system"
 	AntreaAgentDaemonSetName       = "antrea-agent"
 	AntreaControllerDeploymentName = "antrea-controller"
 	AntreaConfigMapName            = "antrea-config"
+
+	CNIConfDirRenderKey = "CNIConfDir"
+	CNIBinDirRenderKey  = "CNIBinDir"
 )
