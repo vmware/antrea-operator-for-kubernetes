@@ -8,6 +8,7 @@ import (
 	"runtime"
 
 	configv1 "github.com/openshift/api/config/v1"
+	ocoperv1 "github.com/openshift/api/operator/v1"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
@@ -88,6 +89,11 @@ func main() {
 	}
 
 	if err := configv1.Install(mgr.GetScheme()); err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+
+	if err := ocoperv1.Install(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
