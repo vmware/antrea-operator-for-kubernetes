@@ -8,7 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"github.com/ruicao93/antrea-operator/pkg/controller/sharedinfo"
-	operatorversion "github.com/ruicao93/antrea-operator/pkg/version"
+	"github.com/ruicao93/antrea-operator/version"
 )
 
 // AddToManagerFuncs is a list of functions to add all Controllers to the Manager
@@ -16,7 +16,7 @@ var AddToManagerFuncs []func(manager.Manager, *statusmanager.StatusManager, *sha
 
 // AddToManager adds all Controllers to the Manager
 func AddToManager(m manager.Manager) error {
-	s := statusmanager.New(m.GetClient(), m.GetRESTMapper(), "antrea", operatorversion.Version)
+	s := statusmanager.New(m.GetClient(), m.GetRESTMapper(), "antrea", version.Version)
 	sharedInfo := sharedinfo.New()
 	for _, f := range AddToManagerFuncs {
 		if err := f(m, s, sharedInfo); err != nil {
