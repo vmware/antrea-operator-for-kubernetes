@@ -12,6 +12,16 @@ RUN make bin
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 
+LABEL name="antrea-operator-for-kubernetes"
+LABEL maintainer="Antrea Team"
+LABEL summary="A cluster operator to deploy Antrea CNI plugin"
+LABEL version="0.0.1"
+LABEL release="1"
+LABEL description="Manage deployments, daemonsets, and config maps for Antrea"
+LABEL vendor="VMware"
+
+COPY LICENSE /licenses/
+
 ENV OPERATOR=/usr/local/bin/antrea-operator \
     USER_UID=1001 \
     USER_NAME=antrea-operator
