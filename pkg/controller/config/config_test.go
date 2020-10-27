@@ -18,6 +18,7 @@ import (
 
 	operatorv1 "github.com/ruicao93/antrea-operator/pkg/apis/operator/v1"
 	operatortypes "github.com/ruicao93/antrea-operator/pkg/types"
+	"github.com/ruicao93/antrea-operator/version"
 )
 
 var mockClusterConfig = configv1.Network{
@@ -134,6 +135,12 @@ func TestRender(t *testing.T) {
 			err = runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), antreaDeployment)
 			g.Expect(err).ShouldNot(HaveOccurred())
 			g.Expect(antreaDeployment.Spec.Template.Spec.Containers[0].Image).Should(Equal(operatortypes.DefaultAntreaImage))
+			g.Expect(antreaDeployment.Annotations["release.openshift.io/version"]).Should(Equal(version.Version))
+		} else if obj.GetKind() == "DaemonSet" && obj.GetNamespace() == "kube-system" && obj.GetName() == "antrea-agent" {
+			antreaDaemonSet := &appsv1.DaemonSet{}
+			err = runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), antreaDaemonSet)
+			g.Expect(err).ShouldNot(HaveOccurred())
+			g.Expect(antreaDaemonSet.Annotations["release.openshift.io/version"]).Should(Equal(version.Version))
 		}
 	}
 }
