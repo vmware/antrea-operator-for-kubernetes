@@ -14,6 +14,7 @@ import (
 
 	operatorv1 "github.com/ruicao93/antrea-operator/pkg/apis/operator/v1"
 	"github.com/ruicao93/antrea-operator/pkg/types"
+	"github.com/ruicao93/antrea-operator/version"
 )
 
 func FillConfigs(clusterConfig *configv1.Network, operConfig *operatorv1.AntreaInstall) error {
@@ -223,6 +224,7 @@ func pluginCNIConfDir(conf *ocoperv1.NetworkSpec) string {
 func GenerateRenderData(operatorNetwork *ocoperv1.Network, operConfig *operatorv1.AntreaInstall) (*render.RenderData, error) {
 	renderData := render.MakeRenderData()
 
+	renderData.Data[types.ReleaseVersion] = version.Version
 	renderData.Data[types.AntreaAgentConfigRenderKey] = operConfig.Spec.AntreaAgentConfig
 	renderData.Data[types.AntreaCNIConfigRenderKey] = operConfig.Spec.AntreaCNIConfig
 	renderData.Data[types.AntreaControllerConfigRenderKey] = operConfig.Spec.AntreaControllerConfig
