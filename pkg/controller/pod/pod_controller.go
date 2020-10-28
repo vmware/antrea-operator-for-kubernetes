@@ -22,7 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	"github.com/ruicao93/antrea-operator/pkg/controller/sharedinfo"
+	"github.com/vmware/antrea-operator-for-kubernetes/pkg/controller/sharedinfo"
 )
 
 var log = logf.Log.WithName("controller_pod")

@@ -14,8 +14,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	operatorv1 "github.com/ruicao93/antrea-operator/pkg/apis/operator/v1"
-	operatortypes "github.com/ruicao93/antrea-operator/pkg/types"
+	operatorv1 "github.com/vmware/antrea-operator-for-kubernetes/pkg/apis/operator/v1"
+	operatortypes "github.com/vmware/antrea-operator-for-kubernetes/pkg/types"
 )
 
 var log = logf.Log.WithName("status_manager")

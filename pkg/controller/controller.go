@@ -8,9 +8,9 @@ import (
 
 	"github.com/openshift/cluster-network-operator/pkg/controller/statusmanager"
 
-	"github.com/ruicao93/antrea-operator/pkg/controller/sharedinfo"
-	"github.com/ruicao93/antrea-operator/pkg/types"
-	"github.com/ruicao93/antrea-operator/version"
+	"github.com/vmware/antrea-operator-for-kubernetes/pkg/controller/sharedinfo"
+	"github.com/vmware/antrea-operator-for-kubernetes/pkg/types"
+	"github.com/vmware/antrea-operator-for-kubernetes/version"
 )
 
 // AddToManagerFuncs is a list of functions to add all Controllers to the Manager

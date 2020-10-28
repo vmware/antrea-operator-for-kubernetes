@@ -25,7 +25,7 @@ bin:
 .PHONY: test-unit
 test-unit:
 	@echo "===> Running unit tests <==="
-	GOOS=linux $(GO) test -race -cover github.com/ruicao93/antrea-operator/pkg...
+	GOOS=linux $(GO) test -race -cover github.com/vmware/antrea-operator-for-kubernetes/pkg...
 
 .golangci-bin:
 	@echo "===> Installing Golangci-lint <==="

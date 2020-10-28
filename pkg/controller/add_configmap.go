@@ -4,7 +4,7 @@
 package controller
 
 import (
-	"github.com/ruicao93/antrea-operator/pkg/controller/config"
+	"github.com/vmware/antrea-operator-for-kubernetes/pkg/controller/config"
 )
 
 func init() {
