@@ -21,9 +21,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
-	"github.com/ruicao93/antrea-operator/pkg/apis"
-	"github.com/ruicao93/antrea-operator/pkg/controller"
-	"github.com/ruicao93/antrea-operator/version"
+	"github.com/vmware/antrea-operator-for-kubernetes/pkg/apis"
+	"github.com/vmware/antrea-operator-for-kubernetes/pkg/controller"
+	"github.com/vmware/antrea-operator-for-kubernetes/version"
 )
 
 var log = logf.Log.WithName("cmd")

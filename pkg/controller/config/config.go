@@ -12,9 +12,9 @@ import (
 	"github.com/openshift/cluster-network-operator/pkg/render"
 	"gopkg.in/yaml.v2"
 
-	operatorv1 "github.com/ruicao93/antrea-operator/pkg/apis/operator/v1"
-	"github.com/ruicao93/antrea-operator/pkg/types"
-	"github.com/ruicao93/antrea-operator/version"
+	operatorv1 "github.com/vmware/antrea-operator-for-kubernetes/pkg/apis/operator/v1"
+	"github.com/vmware/antrea-operator-for-kubernetes/pkg/types"
+	"github.com/vmware/antrea-operator-for-kubernetes/version"
 )
 
 func FillConfigs(clusterConfig *configv1.Network, operConfig *operatorv1.AntreaInstall) error {

@@ -31,10 +31,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	operatorv1 "github.com/ruicao93/antrea-operator/pkg/apis/operator/v1"
-	"github.com/ruicao93/antrea-operator/pkg/controller/sharedinfo"
-	operstatus "github.com/ruicao93/antrea-operator/pkg/controller/statusmanager"
-	operatortypes "github.com/ruicao93/antrea-operator/pkg/types"
+	operatorv1 "github.com/vmware/antrea-operator-for-kubernetes/pkg/apis/operator/v1"
+	"github.com/vmware/antrea-operator-for-kubernetes/pkg/controller/sharedinfo"
+	operstatus "github.com/vmware/antrea-operator-for-kubernetes/pkg/controller/statusmanager"
+	operatortypes "github.com/vmware/antrea-operator-for-kubernetes/pkg/types"
 )
 
 var log = logf.Log.WithName("controller_config")

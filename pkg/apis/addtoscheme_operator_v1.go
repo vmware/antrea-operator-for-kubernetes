@@ -1,7 +1,7 @@
 package apis
 
 import (
-	v1 "github.com/ruicao93/antrea-operator/pkg/apis/operator/v1"
+	v1 "github.com/vmware/antrea-operator-for-kubernetes/pkg/apis/operator/v1"
 )
 
 func init() {
