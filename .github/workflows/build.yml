@@ -3,7 +3,7 @@ name: Build and push latest image if needed
 on:
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   build:
