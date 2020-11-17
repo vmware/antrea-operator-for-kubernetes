@@ -1,3 +1,6 @@
+# Copyright 2020 VMware, Inc. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 import os.path
 import sys
@@ -5,7 +8,7 @@ import sys
 try:
     import yaml
 except ImportError:
-    print("Please install pyyaml")
+    print("Please install PyYAML")
     sys.exit(1)
 
 import zipfile
