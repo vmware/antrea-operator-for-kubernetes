@@ -94,6 +94,19 @@ Operator CR `antrea-install` is used to provide antrea configurations:
 - AntreaControllerConfig holds the configurations for antrea-controller.
 - AntreaImage is the Antrea image name and version used by antrea-agent and antrea-controller.
 
+## Contributing
+
+We welcome community contributions to the Antrea operator for Kubernetes!
+
+Before you start submitting code to antrea-operator-for-kuberentes, you should sign
+our contributor license agreement (CLA).
+
+If you wish to contribute code and you have not signed our CLA, our bot will update
+the issue when you open a Pull Request.
+For more detailed information, refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+
+For any questions about the CLA process, please refer to our [FAQ](https://cla.vmware.com/faq).
+
 ## License
 
 This repository is available under the [Apache 2.0 license](LICENSE).

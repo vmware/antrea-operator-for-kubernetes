@@ -1,3 +1,6 @@
+// Copyright © 2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0 
+
 // Package operator contains operator API versions.
 //
 // This file ensures Go source parsers acknowledge the operator package
