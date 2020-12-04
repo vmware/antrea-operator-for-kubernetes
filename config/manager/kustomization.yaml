@@ -1,0 +1,14 @@
+resources:
+- manager.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+images:
+- name: antrea-operator
+  newName: antrea-operator
+  newTag: latest
+- name: caorui/antrea-operator
+  newName: caorui/antrea-operator
+  newTag: v0.0.1
+- name: controller
+  newName: antrea-operator
+  newTag: latest

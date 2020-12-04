@@ -1,0 +1,24 @@
+# permissions for end users to edit antreainstalls.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: antreainstall-editor-role
+rules:
+- apiGroups:
+  - operator.antrea.vmware.com
+  resources:
+  - antreainstalls
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - operator.antrea.vmware.com
+  resources:
+  - antreainstalls/status
+  verbs:
+  - get

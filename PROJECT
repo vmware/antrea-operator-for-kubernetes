@@ -1,0 +1,11 @@
+domain: vmware.com
+layout: go.kubebuilder.io/v2
+projectName: antrea-operator-for-kubernetes
+repo: github.com/vmware/antrea-operator-for-kubernetes
+resources:
+- group: operator.antrea
+  kind: AntreaInstall
+  version: v1
+version: 3-alpha
+plugins:
+  go.sdk.operatorframework.io/v2-alpha: {}

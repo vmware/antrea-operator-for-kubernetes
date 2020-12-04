@@ -1,5 +1,5 @@
 channels:
-  - currentCSV: antrea-operator-for-kubernetes.v0.0.1
-    name: alpha
+- currentCSV: antrea-operator-for-kubernetes.v0.0.1
+  name: alpha
 defaultChannel: alpha
 packageName: antrea-operator-for-kubernetes

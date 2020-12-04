@@ -1,0 +1,187 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: antrea-operator
+rules:
+- nonResourceURLs:
+  - /addressgroups
+  - /agentinfo
+  - /appliedtogroups
+  - /networkpolicies
+  - /ovsflows
+  - /ovstracing
+  - /podinterfaces
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - endpoints
+  - pods
+  verbs:
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apiregistration.k8s.io
+  resources:
+  - apiservices
+  verbs:
+  - create
+  - delete
+  - get
+  - update
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - subjectaccessreviews
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - clusterinformation.antrea.tanzu.vmware.com
+  resources:
+  - antreaagentinfos
+  - antreacontrollerinfos
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+- apiGroups:
+  - config.openshift.io
+  resources:
+  - clusteroperators
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - config.openshift.io
+  resources:
+  - clusteroperators/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - config.openshift.io
+  resources:
+  - networks
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - config.openshift.io
+  resources:
+  - networks/finalizers
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.antrea.tanzu.vmware.com
+  resources:
+  - addressgroups
+  - appliedtogroups
+  - networkpolicies
+  verbs:
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - operator.antrea.vmware.com
+  resources:
+  - antreainstalls
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - operator.antrea.vmware.com
+  resources:
+  - antreainstalls/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - operator.openshift.io
+  resources:
+  - networks
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ops.antrea.tanzu.vmware.com
+  resources:
+  - traceflows
+  - traceflows/status
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - security.antrea.tanzu.vmware.com
+  resources:
+  - clusternetworkpolicies
+  verbs:
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
+  - system.antrea.tanzu.vmware.com
+  resources:
+  - agentinfos
+  - controllerinfos
+  - supportbundles
+  - supportbundles/download
+  verbs:
+  - delete
+  - get
+  - list
+  - post
+  - watch
