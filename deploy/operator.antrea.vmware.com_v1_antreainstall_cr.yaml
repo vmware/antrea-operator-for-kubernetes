@@ -127,4 +127,4 @@ spec:
     # And the Secret must be mounted to directory "/var/run/antrea/antrea-controller-tls" of the
     # antrea-controller container.
     #selfSignedCert: true
-  antreaImage: antrea/antrea-ubuntu:v0.9.1
+  antreaImage: antrea/antrea-ubi:v0.9.1
