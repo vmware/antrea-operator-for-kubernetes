@@ -26,7 +26,7 @@ metadata:
     containerImage: antrea/antrea-operator:0.0.1
     support: VMware
     certified: "True"
-  name: antrea-operator.v0.0.1
+  name: antrea-operator-for-kubernetes.v0.0.1
   marketplace.openshift.io/action-text: Install-time Instructions
   marketplace.openshift.io/remote-workflow: https://github.com/vmware/antrea-operator-for-kubernetes/blob/main/README.md
   repository: github.com/vmware/antrea-operator-for-kubernetes
@@ -155,10 +155,10 @@ spec:
               verbs: [get, watch, list]
             - apiGroups: [ops.antrea.tanzu.vmware.com]
               resources: [traceflows, traceflows/status]
-              verbs: [create, get, list, patch, update, watch, delete, delete]
+              verbs: [create, get, list, patch, update, watch, delete]
             - apiGroups: [clusterinformation.antrea.tanzu.vmware.com]
               resources: [antreaagentinfos, antreacontrollerinfos]
-              verbs: [get, list, create, update, delete, delete]
+              verbs: [get, list, create, update, delete]
             - apiGroups: [networking.antrea.tanzu.vmware.com]
               resources: [networkpolicies, appliedtogroups, addressgroups]
               verbs: [get, watch, list, delete]

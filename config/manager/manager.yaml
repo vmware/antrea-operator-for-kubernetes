@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    name: antrea-operator
+    openshift.io/run-level: '0'
+  name: antrea-operator
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: antrea-operator
+  namespace: antrea-operator
+spec:
+  selector:
+    matchLabels:
+      name: antrea-operator
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: antrea-operator
+    spec:
+      hostNetwork: true
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+        - effect: NoSchedule
+          key: node.kubernetes.io/not-ready
+      serviceAccountName: antrea-operator
+      containers:
+      - command:
+        - antrea-operator
+        args:
+        - --enable-leader-election
+        image: caorui/antrea-operator:v0.0.1
+        name: antrea-operator
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: WATCH_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: OPERATOR_NAME
+            value: "antrea-operator"

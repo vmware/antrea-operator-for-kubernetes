@@ -1,14 +1,22 @@
 FROM golang:1.13 as antrea-operator-build
 
-WORKDIR /antrea-operator
-
-COPY go.mod /antrea-operator/go.mod
-
+WORKDIR /workspace
+# Copy the Go Modules manifests
+COPY go.mod go.mod
+COPY go.sum go.sum
+# cache deps before building and copying source so that we don't need to re-download as much
+# and so that source changes don't invalidate our downloaded layer
 RUN go mod download
 
-COPY . /antrea-operator
+# Copy the go source
+COPY main.go main.go
+COPY api/ api/
+COPY controllers/ controllers/
+COPY version/ version/
 
-RUN make bin
+# Build
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go
+
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 
@@ -28,8 +36,8 @@ ENV OPERATOR=/usr/local/bin/antrea-operator \
 
 COPY build/bin /usr/local/bin
 # install operator binary
-COPY --from=antrea-operator-build /antrea-operator/build/_output/bin/antrea-operator ${OPERATOR}
-COPY manifest /manifest
+COPY --from=antrea-operator-build /workspace/manager ${OPERATOR}
+COPY antrea-manifest /antrea-manifest
 RUN  /usr/local/bin/user_setup
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]

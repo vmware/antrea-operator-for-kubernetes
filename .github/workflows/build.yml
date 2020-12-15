@@ -11,4 +11,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build antrea-operator Docker image
-        run: make
+        run: make docker-build
