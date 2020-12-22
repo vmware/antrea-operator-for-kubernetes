@@ -20,3 +20,5 @@ jobs:
         run: make bin
       - name: Run tests
         run: make test
+      - name: Run golangci-lint
+        run: make golangci

@@ -44,7 +44,13 @@ all: manager
 
 .PHONY: golangci
 golangci: .golangci-bin
-	@GOOS=linux CGO_ENABLED=1 .golangci-bin/golangci-lint run -c .golangci.yml
+	@echo "===> Running golangci <==="
+	@GOOS=linux .golangci-bin/golangci-lint run -c .golangci.yml
+
+.PHONY: golangci-fix
+golangci-fix: .golangci-bin
+	@echo "===> Running golangci-fix<==="
+	@GOOS=linux .golangci-bin/golangci-lint run -c .golangci.yml --fix
 
 # Run tests
 ENVTEST_ASSETS_DIR = $(shell pwd)/testbin
