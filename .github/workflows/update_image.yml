@@ -1,0 +1,23 @@
+name: Update the antrea-operator and bundle images every 12 hours
+
+on:
+  schedule:
+    # every 12 hours
+    - cron: '0 */12 * * *'
+
+jobs:
+  build:
+    if: github.repository == 'vmware/antrea-operator-for-kubernetes'
+    runs-on: [ubuntu-18.04]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build antrea-operator and bundle images and push to registry
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          make docker-build
+          make bundle-build
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+          docker push aantrea/antrea-operator:latest
+          docker push antrea/antrea-operator-bundle:latest
