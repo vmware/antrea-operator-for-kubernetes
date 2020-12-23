@@ -144,3 +144,5 @@ packagemanifests: kustomize manifests
 
 .PHONY: bin
 bin: manager
+
+
