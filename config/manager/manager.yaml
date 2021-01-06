@@ -33,7 +33,7 @@ spec:
         - antrea-operator
         args:
         - --enable-leader-election
-        image: caorui/antrea-operator:v0.0.1
+        image: antrea/antrea-operator:v0.0.1
         name: antrea-operator
         imagePullPolicy: IfNotPresent
         env:

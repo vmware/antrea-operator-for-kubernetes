@@ -30,16 +30,16 @@ endif
 
 ifndef VERSION
         VERSION := $(shell head -n 1 VERSION)
-        DOCKER_IMG_VERSION := $(VERSION_PREFIX)$(VERSION)-$(VERSION_SUFFIX)
+        OPERATOR_IMG := $(VERSION_PREFIX)$(VERSION)-$(VERSION_SUFFIX)
 else
-        DOCKER_IMG_VERSION := $(VERSION)
+        OPERATOR_IMG := $(VERSION)
 endif
 
 # Default bundle image tag
-BUNDLE_IMG ?= antrea/antrea-operator-bundle:$(DOCKER_IMG_VERSION)
+BUNDLE_IMG ?= antrea/antrea-operator-bundle:$(OPERATOR_IMG)
 
 # Image URL to use all building/pushing image targets
-IMG ?= antrea/antrea-operator:$(DOCKER_IMG_VERSION)
+IMG ?= antrea/antrea-operator:$(OPERATOR_IMG)
 
 version-info:
 	@echo "===> Version information <==="
@@ -47,4 +47,4 @@ version-info:
 	@echo "GIT_SHA: $(GIT_SHA)"
 	@echo "GIT_TREE_STATE: $(GIT_TREE_STATE)"
 	@echo "RELEASE_STATUS: $(RELEASE_STATUS)"
-	@echo "DOCKER_IMG_VERSION: $(DOCKER_IMG_VERSION)"
+	@echo "OPERATOR_IMG: $(OPERATOR_IMG)"

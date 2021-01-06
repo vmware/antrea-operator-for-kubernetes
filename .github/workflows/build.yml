@@ -24,5 +24,5 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
           echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-          docker push aantrea/antrea-operator:latest
+          docker push antrea/antrea-operator:latest
           docker push antrea/antrea-operator-bundle:latest
