@@ -282,7 +282,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: antrea-operator
-                image: caorui/antrea-operator:v0.0.1
+                image: antrea/antrea-operator:v0.0.1
                 imagePullPolicy: IfNotPresent
                 name: antrea-operator
                 resources: {}

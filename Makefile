@@ -1,8 +1,5 @@
 SHELL := /bin/bash
-# Current Operator version
-VERSION ?= latest
-# Default bundle image tag
-BUNDLE_IMG ?= antrea-operator-bundle:$(VERSION)
+
 # Options for 'bundle-build'
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
@@ -12,10 +9,10 @@ BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
 endif
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
-# Image URL to use all building/pushing image targets
-IMG ?= antrea-operator:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
+
+include versioning.mk
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -44,7 +41,13 @@ all: manager
 
 .PHONY: golangci
 golangci: .golangci-bin
-	@GOOS=linux CGO_ENABLED=1 .golangci-bin/golangci-lint run -c .golangci.yml
+	@echo "===> Running golangci <==="
+	@GOOS=linux .golangci-bin/golangci-lint run -c .golangci.yml
+
+.PHONY: golangci-fix
+golangci-fix: .golangci-bin
+	@echo "===> Running golangci-fix<==="
+	@GOOS=linux .golangci-bin/golangci-lint run -c .golangci.yml --fix
 
 # Run tests
 ENVTEST_ASSETS_DIR = $(shell pwd)/testbin
@@ -84,12 +87,10 @@ generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 # Build the docker image
-docker-build: test
+docker-build:
 	docker build -f build/Dockerfile . -t ${IMG}
+	docker tag ${IMG} antrea/antrea-operator
 
-# Push the docker image
-docker-push:
-	docker push ${IMG}
 
 # find or download controller-gen
 # download controller-gen if necessary
@@ -127,7 +128,7 @@ endif
 .PHONY: bundle
 bundle: manifests kustomize
 	operator-sdk generate kustomize manifests -q
-	cd config/manager && $(KUSTOMIZE) edit set image antrea-operator=$(IMG)
+	cd config/manager && $(KUSTOMIZE) edit set image antrea-operator=antrea/antrea-operator:$(VERSION)
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle
 
@@ -135,6 +136,7 @@ bundle: manifests kustomize
 .PHONY: bundle-build
 bundle-build:
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+	docker tag ${BUNDLE_IMG} antrea/antrea-operator-bundle
 
 # Generate package manifests.
 packagemanifests: kustomize manifests

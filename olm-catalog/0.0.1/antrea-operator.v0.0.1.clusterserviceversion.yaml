@@ -23,7 +23,7 @@ metadata:
     categories: Networking, Security
     description: An operator which installs Antrea network CNI plugin on the
       OpenShift Cluster.
-    containerImage: antrea/antrea-operator:0.0.1
+    containerImage: antrea/antrea-operator:v0.0.1
     support: VMware
     certified: "True"
   name: antrea-operator-for-kubernetes.v0.0.1
@@ -93,7 +93,7 @@ spec:
                 serviceAccountName: antrea-operator
                 containers:
                   - name: antrea-operator
-                    image: antrea/antrea-operator:0.0.1
+                    image: antrea/antrea-operator:v0.0.1
                     command:
                       - antrea-operator
                     imagePullPolicy: Always
