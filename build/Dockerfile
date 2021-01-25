@@ -22,6 +22,7 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 
 LABEL name="antrea-operator-for-kubernetes"
 LABEL maintainer="Antrea <projectantrea-dev@googlegroups.com>"
+LABEL vendor="Project Antrea"
 LABEL summary="A cluster operator to deploy Antrea CNI plugin"
 LABEL version="0.0.1"
 LABEL release="1"
