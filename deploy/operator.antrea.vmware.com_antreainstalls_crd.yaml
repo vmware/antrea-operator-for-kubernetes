@@ -1,6 +1,9 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
   name: antreainstalls.operator.antrea.vmware.com
 spec:
   group: operator.antrea.vmware.com
@@ -44,10 +47,15 @@ spec:
               description: AntreaImage is the Docker image name used by antrea-agent
                 and antrea-controller.
               type: string
+            antreaPlatform:
+              description: AntreaPlatform is the platform on which antrea will be
+                deployed.
+              type: string
           required:
           - antreaAgentConfig
           - antreaCNIConfig
           - antreaControllerConfig
+          - antreaPlatform
           type: object
         status:
           description: AntreaInstallStatus defines the observed state of AntreaInstall
@@ -90,3 +98,9 @@ spec:
   - name: v1
     served: true
     storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

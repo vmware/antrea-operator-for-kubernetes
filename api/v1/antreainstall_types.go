@@ -31,6 +31,11 @@ type AntreaInstallSpec struct {
 	// +required
 	AntreaControllerConfig string `json:"antreaControllerConfig"`
 
+	// AntreaPlatform is the platform on which antrea will be deployed.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +required
+	AntreaPlatform string `json:"antreaPlatform"`
+
 	// AntreaImage is the Docker image name used by antrea-agent and antrea-controller.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
