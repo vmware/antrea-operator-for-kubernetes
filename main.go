@@ -7,9 +7,8 @@ import (
 	"flag"
 	"os"
 
-	"github.com/openshift/cluster-network-operator/pkg/controller/statusmanager"
-
 	"github.com/vmware/antrea-operator-for-kubernetes/controllers/sharedinfo"
+	"github.com/vmware/antrea-operator-for-kubernetes/controllers/statusmanager"
 	"github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
 	"github.com/vmware/antrea-operator-for-kubernetes/version"
 
@@ -63,8 +62,12 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
-	statusManager := statusmanager.New(mgr.GetClient(), mgr.GetRESTMapper(), types.AntreaClusterOperatorName, version.Version)
-	sharedInfo := sharedinfo.New()
+	sharedInfo, err := sharedinfo.New(mgr)
+	if err != nil {
+		setupLog.Error(err, "unable to get shareinfo")
+		os.Exit(1)
+	}
+	statusManager := statusmanager.New(mgr.GetClient(), mgr.GetRESTMapper(), types.AntreaClusterOperatorName, types.OperatorNameSpace, version.Version, sharedInfo)
 	if err = (&controllers.AntreaInstallReconciler{
 		Client:     mgr.GetClient(),
 		Log:        ctrl.Log.WithName("controllers").WithName("AntreaInstall"),
