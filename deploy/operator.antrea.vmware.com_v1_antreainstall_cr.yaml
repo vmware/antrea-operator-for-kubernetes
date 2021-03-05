@@ -128,3 +128,4 @@ spec:
     # antrea-controller container.
     #selfSignedCert: true
   antreaImage: antrea/antrea-ubi:v0.9.1
+  antreaPlatform: openshift

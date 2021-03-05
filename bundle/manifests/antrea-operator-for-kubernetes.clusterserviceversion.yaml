@@ -21,7 +21,7 @@ metadata:
       ]
     capabilities: Basic Install
     description: An operator which installs Antrea network CNI plugin on the Kubernetes cluster.
-    operators.operatorframework.io/builder: operator-sdk-v1.2.0
+    operators.operatorframework.io/builder: operator-sdk-v1.4.2
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
   name: antrea-operator-for-kubernetes.v0.0.1
   namespace: placeholder
@@ -59,6 +59,9 @@ spec:
       - description: AntreaImage is the Docker image name used by antrea-agent and antrea-controller.
         displayName: Antrea Image
         path: antreaImage
+      - description: AntreaPlatform is the platform on which antrea will be deployed.
+        displayName: Antrea Platform
+        path: antreaPlatform
       statusDescriptors:
       - description: Conditions describes the state of Antrea installation.
         displayName: Conditions
