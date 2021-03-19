@@ -89,20 +89,39 @@ spec:
         - apiGroups:
           - ""
           resources:
-          - endpoints
+          - configmaps
+          - namespaces
           - pods
+          - serviceaccounts
+          - services
           verbs:
+          - create
           - delete
+          - deletecollection
           - get
           - list
+          - patch
+          - update
           - watch
         - apiGroups:
           - ""
           resources:
-          - pods
+          - nodes
           verbs:
           - get
           - list
+          - watch
+        - apiGroups:
+          - apiextensions.k8s.io
+          resources:
+          - customresourcedefinitions
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
           - watch
         - apiGroups:
           - apiregistration.k8s.io
@@ -114,10 +133,28 @@ spec:
           - get
           - update
         - apiGroups:
+          - apps
+          resources:
+          - daemonsets
+          - deployments
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
           - authentication.k8s.io
           resources:
-          - subjectaccessreviews
           - tokenreviews
+          verbs:
+          - create
+        - apiGroups:
+          - authorization.k8s.io
+          resources:
+          - subjectaccessreviews
           verbs:
           - create
         - apiGroups:
@@ -155,15 +192,6 @@ spec:
           - config.openshift.io
           resources:
           - networks
-          verbs:
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - config.openshift.io
-          resources:
           - networks/finalizers
           verbs:
           - get
@@ -234,6 +262,21 @@ spec:
           - update
           - watch
         - apiGroups:
+          - rbac.authorization.k8s.io
+          resources:
+          - clusterrolebindings
+          - clusterroles
+          - rolebindings
+          - roles
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
           - security.antrea.tanzu.vmware.com
           resources:
           - clusternetworkpolicies
@@ -242,6 +285,14 @@ spec:
           - get
           - list
           - watch
+        - apiGroups:
+          - security.openshift.io
+          resourceNames:
+          - hostnetwork
+          resources:
+          - securitycontextconstraints
+          verbs:
+          - use
         - apiGroups:
           - system.antrea.tanzu.vmware.com
           resources:
@@ -285,7 +336,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: antrea-operator
-                image: antrea/antrea-operator:v0.0.1
+                image: registry.connect.redhat.com/wavefronthq/antrea-ocp-operator:0.0.9
                 imagePullPolicy: IfNotPresent
                 name: antrea-operator
                 resources: {}
@@ -348,4 +399,4 @@ spec:
   maturity: alpha
   provider:
     name: antrea.io
-  version: 0.0.1
+  version: 0.0.0
