@@ -67,7 +67,11 @@ func main() {
 		setupLog.Error(err, "unable to get shareinfo")
 		os.Exit(1)
 	}
-	statusManager := statusmanager.New(mgr.GetClient(), mgr.GetRESTMapper(), types.AntreaClusterOperatorName, types.OperatorNameSpace, version.Version, sharedInfo)
+	statusManager, err := statusmanager.New(mgr.GetClient(), mgr.GetRESTMapper(), types.AntreaClusterOperatorName, types.OperatorNameSpace, version.Version, sharedInfo)
+	if err != nil {
+		setupLog.Error(err, "unable to get status manager")
+		os.Exit(1)
+	}
 	if err = (&controllers.AntreaInstallReconciler{
 		Client:     mgr.GetClient(),
 		Log:        ctrl.Log.WithName("controllers").WithName("AntreaInstall"),

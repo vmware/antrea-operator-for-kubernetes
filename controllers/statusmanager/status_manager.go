@@ -5,6 +5,7 @@ package statusmanager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -13,9 +14,11 @@ import (
 	configv1 "github.com/openshift/api/config/v1"
 	"github.com/openshift/library-go/pkg/config/clusteroperator/v1helpers"
 	"gopkg.in/yaml.v2"
-	"k8s.io/apimachinery/pkg/api/errors"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	uns "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -58,8 +61,9 @@ type StatusManager struct {
 
 	failing [maxStatusLevel]*configv1.ClusterOperatorStatusCondition
 
-	daemonSets  []types.NamespacedName
-	deployments []types.NamespacedName
+	daemonSets     []types.NamespacedName
+	deployments    []types.NamespacedName
+	relatedObjects []configv1.ObjectReference
 
 	OperatorNamespace string
 	AdaptorName       string
@@ -70,7 +74,7 @@ type StatusK8s struct{}
 
 type StatusOc struct{}
 
-func New(client client.Client, mapper meta.RESTMapper, name, operatorNamespace, version string, sharedInfo *sharedinfo.SharedInfo) *StatusManager {
+func New(client client.Client, mapper meta.RESTMapper, name, operatorNamespace, version string, sharedInfo *sharedinfo.SharedInfo) (*StatusManager, error) {
 	status := StatusManager{
 		client:            client,
 		mapper:            mapper,
@@ -79,12 +83,65 @@ func New(client client.Client, mapper meta.RESTMapper, name, operatorNamespace, 
 		OperatorNamespace: operatorNamespace,
 		AdaptorName:       sharedInfo.AntreaPlatform,
 	}
-	if sharedInfo.AntreaPlatform == "openshift" {
+	switch sharedInfo.AntreaPlatform {
+	case "openshift":
 		status.Adaptor = &StatusOc{}
-	} else {
+	case "kubernetes":
 		status.Adaptor = &StatusK8s{}
+	default:
+		return nil, errors.New("invalid platform: platform should be openshift or kubernetes")
 	}
-	return &status
+	return &status, nil
+}
+
+// deleteRelatedObjects checks for related objects attached to ClusterOperator and deletes
+// whatever is not been rendered from manifests. This is a mechanism to cleanup objects
+// that are no longer needed and are probably present from a previous version
+func (status *StatusManager) deleteRelatedObjectsNotRendered(co *configv1.ClusterOperator) {
+	if status.relatedObjects == nil {
+		return
+	}
+
+	for _, currentObj := range co.Status.RelatedObjects {
+		var found bool = false
+		for _, renderedObj := range status.relatedObjects {
+			found = reflect.DeepEqual(currentObj, renderedObj)
+
+			if found {
+				break
+			}
+		}
+		if !found {
+			gvr := schema.GroupVersionResource{
+				Group:    currentObj.Group,
+				Resource: currentObj.Resource,
+			}
+			gvk, err := status.mapper.KindFor(gvr)
+			if err != nil {
+				log.Error(err, "Error getting GVK of object for deletion")
+				status.relatedObjects = append(status.relatedObjects, currentObj)
+				continue
+			}
+			if gvk.Kind == "Namespace" && gvk.Group == "" {
+				// BZ 1820472: During SDN migration, deleting a namespace object may get stuck in 'Terminating' forever if the cluster network doesn't working as expected.
+				// We choose to not delete the namespace here but to ask user do it manually after the cluster is back to normal state.
+				log.Info("Object Kind is Namespace, skip")
+				continue
+			}
+			objToDelete := &uns.Unstructured{}
+			objToDelete.SetName(currentObj.Name)
+			objToDelete.SetNamespace(currentObj.Namespace)
+			objToDelete.SetGroupVersionKind(gvk)
+			err = status.client.Delete(context.TODO(), objToDelete, client.PropagationPolicy("Background"))
+			if err != nil {
+				log.Error(err, "Error deleting related object")
+				if !k8serrors.IsNotFound(err) {
+					status.relatedObjects = append(status.relatedObjects, currentObj)
+				}
+				continue
+			}
+		}
+	}
 }
 
 func (status *StatusManager) setConditions(progressing []string, reachedAvailableLevel bool) {
@@ -117,6 +174,33 @@ func (status *StatusManager) setConditions(progressing []string, reachedAvailabl
 	status.set(status, reachedAvailableLevel, conditions...)
 }
 
+func (status *StatusManager) setClusterOperatorConditions(co *configv1.ClusterOperator, reachedAvailableLevel bool, conditions *[]configv1.ClusterOperatorStatusCondition) {
+	if reachedAvailableLevel {
+		co.Status.Versions = []configv1.OperandVersion{
+			{Name: "operator", Version: version.Version},
+		}
+	}
+	status.CombineConditions(&co.Status.Conditions, conditions)
+	progressingCondition := v1helpers.FindStatusCondition(co.Status.Conditions, configv1.OperatorProgressing)
+	availableCondition := v1helpers.FindStatusCondition(co.Status.Conditions, configv1.OperatorAvailable)
+	if availableCondition == nil && progressingCondition != nil && progressingCondition.Status == configv1.ConditionTrue {
+		v1helpers.SetStatusCondition(&co.Status.Conditions,
+			configv1.ClusterOperatorStatusCondition{
+				Type:    configv1.OperatorAvailable,
+				Status:  configv1.ConditionFalse,
+				Reason:  "Startup",
+				Message: "The network is starting up",
+			},
+		)
+	}
+	v1helpers.SetStatusCondition(&co.Status.Conditions,
+		configv1.ClusterOperatorStatusCondition{
+			Type:   configv1.OperatorUpgradeable,
+			Status: configv1.ConditionTrue,
+		},
+	)
+}
+
 // Set updates the AntreaInstall.Status with the provided conditions for platform kubernetes.
 func (adaptor *StatusK8s) set(status *StatusManager, reachedAvailableLevel bool, conditions ...configv1.ClusterOperatorStatusCondition) {
 	err := retry.RetryOnConflict(retry.DefaultBackoff, func() error {
@@ -128,31 +212,8 @@ func (adaptor *StatusK8s) set(status *StatusManager, reachedAvailableLevel bool,
 		}
 		co := &configv1.ClusterOperator{ObjectMeta: metav1.ObjectMeta{Name: status.name}}
 		oldStatus := antreaInstall.Status.DeepCopy()
-		if reachedAvailableLevel {
-			co.Status.Versions = []configv1.OperandVersion{
-				{Name: "operator", Version: version.Version},
-			}
-		}
-		status.CombineConditions(&co.Status.Conditions, &conditions)
-		progressingCondition := v1helpers.FindStatusCondition(co.Status.Conditions, configv1.OperatorProgressing)
-		availableCondition := v1helpers.FindStatusCondition(co.Status.Conditions, configv1.OperatorAvailable)
-		if availableCondition == nil && progressingCondition != nil && progressingCondition.Status == configv1.ConditionTrue {
-			v1helpers.SetStatusCondition(&co.Status.Conditions,
-				configv1.ClusterOperatorStatusCondition{
-					Type:    configv1.OperatorAvailable,
-					Status:  configv1.ConditionFalse,
-					Reason:  "Startup",
-					Message: "The network is starting up",
-				},
-			)
-		}
-		v1helpers.SetStatusCondition(&co.Status.Conditions,
-			configv1.ClusterOperatorStatusCondition{
-				Type:   configv1.OperatorUpgradeable,
-				Status: configv1.ConditionTrue,
-			},
-		)
-		if reflect.DeepEqual(*oldStatus, co.Status) {
+		status.setClusterOperatorConditions(co, reachedAvailableLevel, &conditions)
+		if reflect.DeepEqual(oldStatus.Conditions, co.Status.Conditions) {
 			return nil
 		}
 		err = status.setAntreaInstallStatus(&co.Status.Conditions)
@@ -168,35 +229,16 @@ func (adaptor *StatusOc) set(status *StatusManager, reachedAvailableLevel bool, 
 	err := retry.RetryOnConflict(retry.DefaultBackoff, func() error {
 		co := &configv1.ClusterOperator{ObjectMeta: metav1.ObjectMeta{Name: status.name}}
 		err := status.client.Get(context.TODO(), types.NamespacedName{Name: status.name}, co)
-		isNotFound := errors.IsNotFound(err)
+		isNotFound := k8serrors.IsNotFound(err)
 		if err != nil && !isNotFound {
 			return err
 		}
 		oldStatus := co.Status.DeepCopy()
-		if reachedAvailableLevel {
-			co.Status.Versions = []configv1.OperandVersion{
-				{Name: "operator", Version: version.Version},
-			}
+		status.deleteRelatedObjectsNotRendered(co)
+		if status.relatedObjects != nil {
+			co.Status.RelatedObjects = status.relatedObjects
 		}
-		status.CombineConditions(&co.Status.Conditions, &conditions)
-		progressingCondition := v1helpers.FindStatusCondition(co.Status.Conditions, configv1.OperatorProgressing)
-		availableCondition := v1helpers.FindStatusCondition(co.Status.Conditions, configv1.OperatorAvailable)
-		if availableCondition == nil && progressingCondition != nil && progressingCondition.Status == configv1.ConditionTrue {
-			v1helpers.SetStatusCondition(&co.Status.Conditions,
-				configv1.ClusterOperatorStatusCondition{
-					Type:    configv1.OperatorAvailable,
-					Status:  configv1.ConditionFalse,
-					Reason:  "Startup",
-					Message: "The network is starting up",
-				},
-			)
-		}
-		v1helpers.SetStatusCondition(&co.Status.Conditions,
-			configv1.ClusterOperatorStatusCondition{
-				Type:   configv1.OperatorUpgradeable,
-				Status: configv1.ConditionTrue,
-			},
-		)
+		status.setClusterOperatorConditions(co, reachedAvailableLevel, &conditions)
 		if reflect.DeepEqual(*oldStatus, co.Status) {
 			return nil
 		}
@@ -316,4 +358,10 @@ func (status *StatusManager) SetDeployments(deployments []types.NamespacedName) 
 	status.Lock()
 	defer status.Unlock()
 	status.deployments = deployments
+}
+
+func (status *StatusManager) SetRelatedObjects(relatedObjects []configv1.ObjectReference) {
+	status.Lock()
+	defer status.Unlock()
+	status.relatedObjects = relatedObjects
 }

@@ -35,7 +35,7 @@ func New(mgr manager.Manager) (*SharedInfo, error) {
 	antreaInstall := &operatorv1.AntreaInstall{}
 	err := reader.Get(context.TODO(), antreaInstallName, antreaInstall)
 	if err != nil {
-		log.Error(err, "failed to get antrea-install")
+		log.Error(err, "failed to get antrea-install", "namespace", operatortypes.OperatorNameSpace, "name", operatortypes.OperatorConfigName)
 		return nil, err
 	}
 	return &SharedInfo{AntreaPlatform: antreaInstall.Spec.AntreaPlatform}, nil

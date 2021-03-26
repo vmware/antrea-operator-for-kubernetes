@@ -1,4 +1,4 @@
-/* Copyright © 2020 VMware, Inc. All Rights Reserved.
+/* Copyright © 2021 VMware, Inc. All Rights Reserved.
    SPDX-License-Identifier: Apache-2.0 */
 
 // code from https://github.com/openshift/cluster-network-operator/blob/bfc8b01b1ec4d7e5b0cd6423fe75daef945c3cbe/pkg/controller/statusmanager/pod_status.go

@@ -243,6 +243,7 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 
 func (r *AntreaInstallReconciler) updateStatusManagerAndSharedInfo(objs []*uns.Unstructured, clusterConfig *configv1.Network) error {
 	var daemonSets, deployments []types.NamespacedName
+	var relatedObjects []configv1.ObjectReference
 	var daemonSetObject, deploymentObject *uns.Unstructured
 	for _, obj := range objs {
 		if obj.GetAPIVersion() == "apps/v1" && obj.GetKind() == "DaemonSet" {
@@ -252,6 +253,17 @@ func (r *AntreaInstallReconciler) updateStatusManagerAndSharedInfo(objs []*uns.U
 			deployments = append(deployments, types.NamespacedName{Namespace: obj.GetNamespace(), Name: obj.GetName()})
 			deploymentObject = obj
 		}
+		restMapping, err := r.Mapper.RESTMapping(obj.GroupVersionKind().GroupKind())
+		if err != nil {
+			log.Error(err, "failed to get REST mapping for storing related object")
+			continue
+		}
+		relatedObjects = append(relatedObjects, configv1.ObjectReference{
+			Group:     obj.GetObjectKind().GroupVersionKind().Group,
+			Resource:  restMapping.Resource.Resource,
+			Name:      obj.GetName(),
+			Namespace: obj.GetNamespace(),
+		})
 		if err := controllerutil.SetControllerReference(clusterConfig, obj, r.Scheme); err != nil {
 			log.Error(err, "failed to set owner reference", "resource", obj.GetName())
 			r.Status.SetDegraded(statusmanager.OperatorConfig, "ApplyObjectsError", fmt.Sprintf("Failed to set owner reference: %v", err))
@@ -273,6 +285,7 @@ func (r *AntreaInstallReconciler) updateStatusManagerAndSharedInfo(objs []*uns.U
 	}
 	r.Status.SetDaemonSets(daemonSets)
 	r.Status.SetDeployments(deployments)
+	r.Status.SetRelatedObjects(relatedObjects)
 	r.SharedInfo.AntreaAgentDaemonSetSpec = daemonSetObject.DeepCopy()
 	r.SharedInfo.AntreaControllerDeploymentSpec = deploymentObject.DeepCopy()
 	return nil
