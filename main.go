@@ -71,14 +71,12 @@ func main() {
 		setupLog.Error(err, "unable to get status manager")
 		os.Exit(1)
 	}
-	if err = (&controllers.AntreaInstallReconciler{
-		Client:     mgr.GetClient(),
-		Log:        ctrl.Log.WithName("controllers").WithName("AntreaInstall"),
-		Scheme:     mgr.GetScheme(),
-		Status:     statusManager,
-		Mapper:     mgr.GetRESTMapper(),
-		SharedInfo: sharedInfo,
-	}).SetupWithManager(mgr); err != nil {
+	controller, err := controllers.New(mgr, statusManager, sharedInfo)
+	if err != nil {
+		setupLog.Error(err, "unable to get controller")
+		os.Exit(1)
+	}
+	if err = controller.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AntreaInstall")
 		os.Exit(1)
 	}

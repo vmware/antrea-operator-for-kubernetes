@@ -84,6 +84,9 @@ spec:
     # the flow collector.
     # Flow export frequency should be greater than or equal to 1.
     #flowExportFrequency: 12
+
+    # Provide the service ip range(--service-cluster-ip-range).
+    serviceCIDR: "10.96.0.0/12"
   antreaCNIConfig: |
     {
         "cniVersion":"0.3.0",
