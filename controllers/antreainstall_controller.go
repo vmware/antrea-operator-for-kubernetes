@@ -24,10 +24,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	"github.com/vmware/antrea-operator-for-kubernetes/controllers/sharedinfo"
-	"github.com/vmware/antrea-operator-for-kubernetes/controllers/statusmanager"
-	operatortypes "github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
-
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -36,6 +32,9 @@ import (
 
 	operatorv1 "github.com/vmware/antrea-operator-for-kubernetes/api/v1"
 	configutil "github.com/vmware/antrea-operator-for-kubernetes/controllers/config"
+	"github.com/vmware/antrea-operator-for-kubernetes/controllers/sharedinfo"
+	"github.com/vmware/antrea-operator-for-kubernetes/controllers/statusmanager"
+	operatortypes "github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
 )
 
 var log = ctrl.Log.WithName("controllers")

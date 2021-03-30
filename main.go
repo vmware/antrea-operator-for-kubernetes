@@ -7,11 +7,6 @@ import (
 	"flag"
 	"os"
 
-	"github.com/vmware/antrea-operator-for-kubernetes/controllers/sharedinfo"
-	"github.com/vmware/antrea-operator-for-kubernetes/controllers/statusmanager"
-	"github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
-	"github.com/vmware/antrea-operator-for-kubernetes/version"
-
 	configv1 "github.com/openshift/api/config/v1"
 	ocoperv1 "github.com/openshift/api/operator/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -23,6 +18,10 @@ import (
 
 	operatorv1 "github.com/vmware/antrea-operator-for-kubernetes/api/v1"
 	"github.com/vmware/antrea-operator-for-kubernetes/controllers"
+	"github.com/vmware/antrea-operator-for-kubernetes/controllers/sharedinfo"
+	"github.com/vmware/antrea-operator-for-kubernetes/controllers/statusmanager"
+	"github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
+	"github.com/vmware/antrea-operator-for-kubernetes/version"
 	// +kubebuilder:scaffold:imports
 )
 

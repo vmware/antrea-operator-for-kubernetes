@@ -8,19 +8,20 @@ import (
 	"fmt"
 	"time"
 
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	"github.com/go-logr/logr"
-	ctrl "sigs.k8s.io/controller-runtime"
-
-	"github.com/openshift/cluster-network-operator/pkg/apply"
 	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	uns "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
+
+	"github.com/go-logr/logr"
+
+	"github.com/openshift/cluster-network-operator/pkg/apply"
 
 	"github.com/vmware/antrea-operator-for-kubernetes/controllers/sharedinfo"
 	"github.com/vmware/antrea-operator-for-kubernetes/controllers/statusmanager"

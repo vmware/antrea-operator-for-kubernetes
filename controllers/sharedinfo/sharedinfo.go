@@ -7,13 +7,13 @@ import (
 	"context"
 	"sync"
 
-	operatorv1 "github.com/vmware/antrea-operator-for-kubernetes/api/v1"
-	operatortypes "github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
-
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	operatorv1 "github.com/vmware/antrea-operator-for-kubernetes/api/v1"
+	operatortypes "github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
 )
 
 var log = logf.Log.WithName("shared_info")
