@@ -7,12 +7,6 @@ import (
 	"flag"
 	"os"
 
-	"github.com/openshift/cluster-network-operator/pkg/controller/statusmanager"
-
-	"github.com/vmware/antrea-operator-for-kubernetes/controllers/sharedinfo"
-	"github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
-	"github.com/vmware/antrea-operator-for-kubernetes/version"
-
 	configv1 "github.com/openshift/api/config/v1"
 	ocoperv1 "github.com/openshift/api/operator/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -24,6 +18,10 @@ import (
 
 	operatorv1 "github.com/vmware/antrea-operator-for-kubernetes/api/v1"
 	"github.com/vmware/antrea-operator-for-kubernetes/controllers"
+	"github.com/vmware/antrea-operator-for-kubernetes/controllers/sharedinfo"
+	"github.com/vmware/antrea-operator-for-kubernetes/controllers/statusmanager"
+	"github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
+	"github.com/vmware/antrea-operator-for-kubernetes/version"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -63,8 +61,16 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
-	statusManager := statusmanager.New(mgr.GetClient(), mgr.GetRESTMapper(), types.AntreaClusterOperatorName, version.Version)
-	sharedInfo := sharedinfo.New()
+	sharedInfo, err := sharedinfo.New(mgr)
+	if err != nil {
+		setupLog.Error(err, "unable to get shareinfo")
+		os.Exit(1)
+	}
+	statusManager, err := statusmanager.New(mgr.GetClient(), mgr.GetRESTMapper(), types.AntreaClusterOperatorName, types.OperatorNameSpace, version.Version, sharedInfo)
+	if err != nil {
+		setupLog.Error(err, "unable to get status manager")
+		os.Exit(1)
+	}
 	if err = (&controllers.AntreaInstallReconciler{
 		Client:     mgr.GetClient(),
 		Log:        ctrl.Log.WithName("controllers").WithName("AntreaInstall"),

@@ -24,11 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	"github.com/vmware/antrea-operator-for-kubernetes/controllers/sharedinfo"
-	operatortypes "github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
-
 	"github.com/go-logr/logr"
-	"github.com/openshift/cluster-network-operator/pkg/controller/statusmanager"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -36,7 +32,9 @@ import (
 
 	operatorv1 "github.com/vmware/antrea-operator-for-kubernetes/api/v1"
 	configutil "github.com/vmware/antrea-operator-for-kubernetes/controllers/config"
-	operstatus "github.com/vmware/antrea-operator-for-kubernetes/controllers/statusmanager"
+	"github.com/vmware/antrea-operator-for-kubernetes/controllers/sharedinfo"
+	"github.com/vmware/antrea-operator-for-kubernetes/controllers/statusmanager"
+	operatortypes "github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
 )
 
 var log = ctrl.Log.WithName("controllers")
@@ -97,11 +95,10 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 		if apierrors.IsNotFound(err) {
 			msg := "Cluster Network CR not found"
 			log.Info(msg)
-			operstatus.SetDegraded(r.Client, r.Status, statusmanager.ClusterConfig, "NoClusterConfig", msg)
+			r.Status.SetDegraded(statusmanager.ClusterConfig, "NoClusterConfig", msg)
 			return reconcile.Result{}, nil
 		}
-		operstatus.SetDegraded(r.Client, r.Status, statusmanager.ClusterConfig, "InvalidClusterConfig",
-			fmt.Sprintf("Failed to get cluster network CRD: %v", err))
+		r.Status.SetDegraded(statusmanager.ClusterConfig, "InvalidClusterConfig", fmt.Sprintf("Failed to get cluster network CRD: %v", err))
 		log.Error(err, "failed to get Cluster Network CR")
 		return reconcile.Result{Requeue: true}, err
 	}
@@ -117,8 +114,7 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: operatortypes.ClusterOperatorNetworkName}, operatorNetwork)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			operstatus.SetDegraded(r.Client, r.Status, statusmanager.OperatorConfig, "NoClusterNetworkOperatorConfig",
-				fmt.Sprintf("Cluster network operator configuration not found"))
+			r.Status.SetDegraded(statusmanager.OperatorConfig, "NoClusterNetworkOperatorConfig", fmt.Sprintf("Cluster network operator configuration not found"))
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
@@ -133,12 +129,11 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 		if apierrors.IsNotFound(err) {
 			msg := fmt.Sprintf("%s CR not found", operatortypes.OperatorConfigName)
 			log.Info(msg)
-			operstatus.SetDegraded(r.Client, r.Status, statusmanager.ClusterConfig, "NoAntreaInstallCR", msg)
+			r.Status.SetDegraded(statusmanager.ClusterConfig, "NoAntreaInstallCR", msg)
 			return reconcile.Result{}, nil
 		}
 		log.Error(err, "failed to get antrea-install CR")
-		operstatus.SetDegraded(r.Client, r.Status, statusmanager.OperatorConfig, "InvalidAntreaInstallCR",
-			fmt.Sprintf("Failed to get operator CR: %v", err))
+		r.Status.SetDegraded(statusmanager.OperatorConfig, "InvalidAntreaInstallCR", fmt.Sprintf("Failed to get operator CR: %v", err))
 		return reconcile.Result{Requeue: true}, err
 	}
 	if request.Name == operConfig.Name && r.AppliedOperConfig != nil {
@@ -151,16 +146,14 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 	// Fill default configurations.
 	if err = configutil.FillConfigs(clusterConfig, operConfig); err != nil {
 		log.Error(err, "failed to fill configurations")
-		operstatus.SetDegraded(r.Client, r.Status, statusmanager.OperatorConfig, "FillConfigurationsError",
-			fmt.Sprintf("Failed to fill configurations: %v", err))
+		r.Status.SetDegraded(statusmanager.OperatorConfig, "FillConfigurationsError", fmt.Sprintf("Failed to fill configurations: %v", err))
 		return reconcile.Result{Requeue: true}, err
 	}
 
 	// Validate configurations.
 	if err = configutil.ValidateConfig(clusterConfig, operConfig); err != nil {
 		log.Error(err, "failed to validate configurations")
-		operstatus.SetDegraded(r.Client, r.Status, statusmanager.OperatorConfig, "InvalidOperatorConfig",
-			fmt.Sprintf("The operator configuration is invalid: %v", err))
+		r.Status.SetDegraded(statusmanager.OperatorConfig, "InvalidOperatorConfig", fmt.Sprintf("The operator configuration is invalid: %v", err))
 		return reconcile.Result{Requeue: true}, err
 	}
 
@@ -168,8 +161,7 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 	renderData, err := configutil.GenerateRenderData(operatorNetwork, operConfig)
 	if err != nil {
 		log.Error(err, "failed to generate render data")
-		operstatus.SetDegraded(r.Client, r.Status, statusmanager.OperatorConfig, "RenderConfigError",
-			fmt.Sprintf("Failed to render operator configurations: %v", err))
+		r.Status.SetDegraded(statusmanager.OperatorConfig, "RenderConfigError", fmt.Sprintf("Failed to render operator configurations: %v", err))
 		return reconcile.Result{Requeue: true}, err
 	}
 
@@ -177,8 +169,7 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 	appliedConfig, err := r.getAppliedOperConfig()
 	if err != nil {
 		log.Error(err, "failed to get applied config")
-		operstatus.SetDegraded(r.Client, r.Status, statusmanager.OperatorConfig, "InternalError",
-			fmt.Sprintf("Failed to get current configurations: %v", err))
+		r.Status.SetDegraded(statusmanager.OperatorConfig, "InternalError", fmt.Sprintf("Failed to get current configurations: %v", err))
 		return reconcile.Result{}, err
 	}
 	agentNeedChange, controllerNeedChange, imageChange := configutil.NeedApplyChange(appliedConfig, operConfig)
@@ -189,8 +180,7 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 		objs, err := render.RenderDir(operatortypes.DefaultManifestDir, renderData)
 		if err != nil {
 			log.Error(err, "failed to render configuration")
-			operstatus.SetDegraded(r.Client, r.Status, statusmanager.OperatorConfig, "RenderConfigError",
-				fmt.Sprintf("Failed to render operator configurations: %v", err))
+			r.Status.SetDegraded(statusmanager.OperatorConfig, "RenderConfigError", fmt.Sprintf("Failed to render operator configurations: %v", err))
 			return reconcile.Result{Requeue: true}, err
 		}
 
@@ -205,8 +195,7 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 		for _, obj := range objs {
 			if err = apply.ApplyObject(context.TODO(), r.Client, obj); err != nil {
 				log.Error(err, "failed to apply resource")
-				operstatus.SetDegraded(r.Client, r.Status, statusmanager.OperatorConfig, "ApplyObjectsError",
-					fmt.Sprintf("Failed to apply operator configurations: %v", err))
+				r.Status.SetDegraded(statusmanager.OperatorConfig, "ApplyObjectsError", fmt.Sprintf("Failed to apply operator configurations: %v", err))
 				return reconcile.Result{Requeue: true}, err
 			}
 		}
@@ -214,17 +203,15 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 		// Delete old antrea-agent and antrea-controller pods.
 		if r.AppliedOperConfig != nil && agentNeedChange && !imageChange {
 			if err = deleteExistingPods(r.Client, operatortypes.AntreaAgentDaemonSetName); err != nil {
-				operstatus.SetDegraded(r.Client, r.Status, statusmanager.OperatorConfig, "DeleteOldPodsError",
-					fmt.Sprintf("DaemonSet %s is not using the latest configuration updates because: %v",
-						operatortypes.AntreaAgentDaemonSetName, err))
+				msg := fmt.Sprintf("DaemonSet %s is not using the latest configuration updates because: %v", operatortypes.AntreaAgentDaemonSetName, err)
+				r.Status.SetDegraded(statusmanager.OperatorConfig, "DeleteOldPodsError", msg)
 				return reconcile.Result{Requeue: true}, err
 			}
 		}
 		if r.AppliedOperConfig != nil && controllerNeedChange && !imageChange {
 			if err = deleteExistingPods(r.Client, operatortypes.AntreaControllerDeploymentName); err != nil {
-				operstatus.SetDegraded(r.Client, r.Status, statusmanager.OperatorConfig, "DeleteOldPodsError",
-					fmt.Sprintf("Deployment %s is not using the latest configuration updates because: %v",
-						operatortypes.AntreaControllerDeploymentName, err))
+				msg := fmt.Sprintf("Deployment %s is not using the latest configuration updates because: %v", operatortypes.AntreaControllerDeploymentName, err)
+				r.Status.SetDegraded(statusmanager.OperatorConfig, "DeleteOldPodsError", msg)
 				return reconcile.Result{Requeue: true}, err
 			}
 		}
@@ -234,20 +221,18 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 	clusterNetworkConfigChanged := configutil.HasClusterNetworkConfigChange(r.AppliedClusterConfig, clusterConfig)
 	defaultMTUChanged, curDefaultMTU, err := configutil.HasDefaultMTUChange(r.AppliedOperConfig, operConfig)
 	if err != nil {
-		operstatus.SetDegraded(r.Client, r.Status, statusmanager.OperatorConfig, "UpdateNetworkStatusError",
-			fmt.Sprintf("failed to check default MTU configuration: %v", err))
+		r.Status.SetDegraded(statusmanager.OperatorConfig, "UpdateNetworkStatusError", fmt.Sprintf("failed to check default MTU configuration: %v", err))
 		return reconcile.Result{Requeue: true}, err
 	}
 	if clusterNetworkConfigChanged || defaultMTUChanged {
 		if err = updateNetworkStatus(r.Client, clusterConfig, curDefaultMTU); err != nil {
-			operstatus.SetDegraded(r.Client, r.Status, statusmanager.ClusterConfig, "UpdateNetworkStatusError",
-				fmt.Sprintf("Failed to update network status: %v", err))
+			r.Status.SetDegraded(statusmanager.ClusterConfig, "UpdateNetworkStatusError", fmt.Sprintf("Failed to update network status: %v", err))
 			return reconcile.Result{Requeue: true}, err
 		}
 	}
 
-	operstatus.SetNotDegraded(r.Client, r.Status, statusmanager.ClusterConfig)
-	operstatus.SetNotDegraded(r.Client, r.Status, statusmanager.OperatorConfig)
+	r.Status.SetNotDegraded(statusmanager.ClusterConfig)
+	r.Status.SetNotDegraded(statusmanager.OperatorConfig)
 
 	r.AppliedClusterConfig = clusterConfig
 	r.AppliedOperConfig = operConfig
@@ -278,10 +263,9 @@ func (r *AntreaInstallReconciler) updateStatusManagerAndSharedInfo(objs []*uns.U
 			Name:      obj.GetName(),
 			Namespace: obj.GetNamespace(),
 		})
-		if err = controllerutil.SetControllerReference(clusterConfig, obj, r.Scheme); err != nil {
+		if err := controllerutil.SetControllerReference(clusterConfig, obj, r.Scheme); err != nil {
 			log.Error(err, "failed to set owner reference", "resource", obj.GetName())
-			operstatus.SetDegraded(r.Client, r.Status, statusmanager.OperatorConfig, "ApplyObjectsError",
-				fmt.Sprintf("Failed to set owner reference: %v", err))
+			r.Status.SetDegraded(statusmanager.OperatorConfig, "ApplyObjectsError", fmt.Sprintf("Failed to set owner reference: %v", err))
 			return err
 		}
 	}
@@ -295,7 +279,7 @@ func (r *AntreaInstallReconciler) updateStatusManagerAndSharedInfo(objs []*uns.U
 		}
 		err := fmt.Errorf("configuration of resources %v is missing", missedResources)
 		log.Error(nil, err.Error())
-		operstatus.SetDegraded(r.Client, r.Status, statusmanager.OperatorConfig, "ApplyObjectsError", err.Error())
+		r.Status.SetDegraded(statusmanager.OperatorConfig, "ApplyObjectsError", err.Error())
 		return err
 	}
 	r.Status.SetDaemonSets(daemonSets)
