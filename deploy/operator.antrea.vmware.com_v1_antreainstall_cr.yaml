@@ -85,17 +85,6 @@ spec:
     # for the GRE tunnel type.
     #enableIPSecTunnel: false
 
-    # ClusterIP CIDR range for Services. It's required when AntreaProxy is not enabled, and should be
-    # set to the same value as the one specified by --service-cluster-ip-range for kube-apiserver. When
-    # AntreaProxy is enabled, this parameter is not needed and will be ignored if provided.
-    #serviceCIDR: 10.96.0.0/12
-
-    # ClusterIP CIDR range for IPv6 Services. It's required when using kube-proxy to provide IPv6 Service in a Dual-Stack
-    # cluster or an IPv6 only cluster. The value should be the same as the configuration for kube-apiserver specified by
-    # --service-cluster-ip-range. When AntreaProxy is enabled, this parameter is not needed.
-    # No default value for this field.
-    #serviceCIDRv6:
-
     # The port for the antrea-agent APIServer to serve on.
     # Note that if it's set to another value, the `containerPort` of the `api` port of the
     # `antrea-agent` container must be set to the same value.
