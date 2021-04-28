@@ -104,7 +104,7 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 	}
 	if request.Name == clusterConfig.Name && r.AppliedClusterConfig != nil {
 		if reflect.DeepEqual(clusterConfig.Spec, r.AppliedClusterConfig.Spec) {
-			log.Info("no configuration change")
+			log.Info("no cluster configuration change")
 			return reconcile.Result{}, nil
 		}
 	}
@@ -138,7 +138,7 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 	}
 	if request.Name == operConfig.Name && r.AppliedOperConfig != nil {
 		if reflect.DeepEqual(operConfig.Spec, r.AppliedOperConfig.Spec) {
-			log.Info("no configuration change")
+			log.Info("no operator configuration change")
 			return reconcile.Result{}, nil
 		}
 	}
@@ -174,7 +174,7 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 	}
 	agentNeedChange, controllerNeedChange, imageChange := configutil.NeedApplyChange(appliedConfig, operConfig)
 	if !agentNeedChange && !controllerNeedChange {
-		log.Info("no configuration change")
+		log.Info("no agent/controller configuration change")
 	} else {
 		// Render configurations.
 		objs, err := render.RenderDir(operatortypes.DefaultManifestDir, renderData)
@@ -193,7 +193,7 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 
 		// Apply configurations.
 		for _, obj := range objs {
-			if err = apply.ApplyObject(context.TODO(), r.Client, obj); err != nil {
+			if err = createOrPatch(context.TODO(), r.Client, obj); err != nil {
 				log.Error(err, "failed to apply resource")
 				r.Status.SetDegraded(statusmanager.OperatorConfig, "ApplyObjectsError", fmt.Sprintf("Failed to apply operator configurations: %v", err))
 				return reconcile.Result{Requeue: true}, err
@@ -238,6 +238,42 @@ func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, 
 	r.AppliedOperConfig = operConfig
 
 	return ctrl.Result{}, nil
+}
+
+func createOrPatch(ctx context.Context, c client.Client, obj *uns.Unstructured) error {
+	name := obj.GetName()
+	namespace := obj.GetNamespace()
+	if name == "" {
+		return fmt.Errorf("Object %s has no name", obj.GroupVersionKind().String())
+	}
+	gvk := obj.GroupVersionKind()
+	// used for logging and errors
+	objDesc := fmt.Sprintf("(%s) %s/%s", gvk.String(), namespace, name)
+	log.Info(fmt.Sprintf("reconciling %s", objDesc))
+
+	// Get existing
+	existing := &uns.Unstructured{}
+	existing.SetGroupVersionKind(gvk)
+	err := c.Get(ctx, types.NamespacedName{Name: obj.GetName(), Namespace: obj.GetNamespace()}, existing)
+
+	if err != nil && apierrors.IsNotFound(err) {
+		log.Info(fmt.Sprintf("does not exist, creating %s", objDesc))
+		err := c.Create(ctx, obj)
+		if err != nil {
+			return err
+		}
+		log.Info(fmt.Sprintf("successfully created %s", objDesc))
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	err = c.Patch(ctx, existing, client.MergeFrom(obj))
+	if err != nil {
+		log.Error(err, fmt.Sprintf("Failed to patch object %s", name))
+		return err
+	}
+	return nil
 }
 
 func (r *AntreaInstallReconciler) updateStatusManagerAndSharedInfo(objs []*uns.Unstructured, clusterConfig *configv1.Network) error {
