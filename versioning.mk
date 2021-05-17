@@ -35,8 +35,12 @@ else
         OPERATOR_IMG := $(VERSION)
 endif
 
-# Default bundle image tag
-BUNDLE_IMG ?= antrea/antrea-operator-bundle:$(OPERATOR_IMG)
+ifndef OPERATOR_IMG_TAG
+        # Default bundle image tag
+        BUNDLE_IMG ?= antrea/antrea-operator-bundle:$(OPERATOR_IMG)
+else
+	    BUNDLE_IMG ?= $(OPERATOR_IMG_TAG)
+endif
 
 # Image URL to use all building/pushing image targets
 IMG ?= antrea/antrea-operator:$(OPERATOR_IMG)

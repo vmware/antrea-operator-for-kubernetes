@@ -4,6 +4,9 @@ metadata:
   name: antrea-operator
 rules:
 - apiGroups: [""]
+  resources: [endpoints]
+  verbs: [get, list, watch]
+- apiGroups: [""]
   resources: [pods, configmaps, namespaces, serviceaccounts, secrets, services]
   verbs: [create, get, list, patch, delete, update, watch, deletecollection]
 - apiGroups: [apps]
@@ -16,8 +19,11 @@ rules:
   resources: [clusterroles, clusterrolebindings]
   verbs: [create, get, list, patch, update, watch, delete]
 - apiGroups: [config.openshift.io]
-  resources: [clusteroperators, clusteroperators/status]
+  resources: [clusteroperators]
   verbs: [create, get, list, patch, update, watch, delete]
+- apiGroups: [config.openshift.io]
+  resources: [clusteroperators/status]
+  verbs: [get, patch, update]
 - apiGroups: [config.openshift.io]
   resources: [networks, networks/finalizers]
   verbs: [get, list, watch, patch, update]
@@ -61,6 +67,10 @@ rules:
 - apiGroups: [system.antrea.tanzu.vmware.com]
   resources: [controllerinfos, agentinfos, supportbundles, supportbundles/download]
   verbs: [get, watch, list, post, delete]
+- apiGroups: [security.openshift.io]
+  resourceNames: [hostnetwork]
+  resources: [securitycontextconstraints]
+  verbs: [use]
 - nonResourceURLs:
   - /agentinfo
   - /addressgroups

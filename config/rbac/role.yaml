@@ -19,20 +19,39 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - endpoints
+  - configmaps
+  - namespaces
   - pods
+  - serviceaccounts
+  - services
   verbs:
+  - create
   - delete
+  - deletecollection
   - get
   - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - ""
   resources:
-  - pods
+  - nodes
   verbs:
   - get
   - list
+  - watch
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - apiregistration.k8s.io
@@ -44,10 +63,28 @@ rules:
   - get
   - update
 - apiGroups:
+  - apps
+  resources:
+  - daemonsets
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - authentication.k8s.io
   resources:
-  - subjectaccessreviews
   - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
   verbs:
   - create
 - apiGroups:
@@ -85,15 +122,6 @@ rules:
   - config.openshift.io
   resources:
   - networks
-  verbs:
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - config.openshift.io
-  resources:
   - networks/finalizers
   verbs:
   - get
@@ -164,6 +192,21 @@ rules:
   - update
   - watch
 - apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterrolebindings
+  - clusterroles
+  - rolebindings
+  - roles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - security.antrea.tanzu.vmware.com
   resources:
   - clusternetworkpolicies
@@ -172,6 +215,14 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - hostnetwork
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
 - apiGroups:
   - system.antrea.tanzu.vmware.com
   resources:

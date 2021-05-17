@@ -63,13 +63,16 @@ func (r *AntreaInstallReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // +kubebuilder:rbac:groups=operator.antrea.vmware.com,resources=antreainstalls/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=config.openshift.io,resources=clusteroperators,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=config.openshift.io,resources=clusteroperators/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=config.openshift.io,resources=networks,verbs=get;list;watch;patch;update
-// +kubebuilder:rbac:groups=config.openshift.io,resources=networks/finalizers,verbs=get;list;watch;patch;update
+// +kubebuilder:rbac:groups=config.openshift.io,resources=networks;networks/finalizers,verbs=get;list;watch;patch;update
 // +kubebuilder:rbac:groups=operator.openshift.io,resources=networks,verbs=get;list;watch;patch;update
-// +kubebuilder:rbac:groups="",resources=pods,verbs=get;watch;list
-// +kubebuilder:rbac:groups="",resources=pods;endpoints,verbs=get;watch;list;delete
-// +kubebuilder:rbac:groups=authentication.k8s.io,resources=tokenreviews;subjectaccessreviews,verbs=create
+// +kubebuilder:rbac:groups="",resources=nodes,verbs=get;watch;list
+// +kubebuilder:rbac:groups="",resources=namespaces;pods;configmaps;services;serviceaccounts,verbs=create;delete;get;list;patch;update;watch;deletecollection
+// +kubebuilder:rbac:groups=apps,resources=deployments;daemonsets,verbs=create;delete;get;list;patch;update;watch
+// +kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=create;delete;get;list;patch;update;watch
+// +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=clusterroles;clusterrolebindings;roles;rolebindings,verbs=create;delete;get;list;patch;update;watch
 // +kubebuilder:rbac:groups=apiregistration.k8s.io,resources=apiservices,verbs=get;create;update;delete
+// +kubebuilder:rbac:groups=authorization.k8s.io,resources=subjectaccessreviews,verbs=create
+// +kubebuilder:rbac:groups=authentication.k8s.io,resources=tokenreviews,verbs=create
 // +kubebuilder:rbac:groups=networking.k8s.io,resources=networkpolicies,verbs=get;watch;list
 // +kubebuilder:rbac:groups=ops.antrea.tanzu.vmware.com,resources=traceflows;traceflows/status,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=clusterinformation.antrea.tanzu.vmware.com,resources=antreaagentinfos;antreacontrollerinfos,verbs=get;list;create;update;delete
@@ -77,6 +80,7 @@ func (r *AntreaInstallReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // +kubebuilder:rbac:groups=security.antrea.tanzu.vmware.com,resources=clusternetworkpolicies,verbs=get;watch;list;delete
 // +kubebuilder:rbac:groups=system.antrea.tanzu.vmware.com,resources=controllerinfos;agentinfos;supportbundles;supportbundles/download,verbs=get;watch;list;post;delete
 // +kubebuilder:rbac:urls=/agentinfo;/addressgroups;/appliedtogroups;/networkpolicies;/ovsflows;/ovstracing;/podinterfaces,verbs=get
+// +kubebuilder:rbac:groups=security.openshift.io,resources=securitycontextconstraints,resourceNames=hostnetwork,verbs=use
 
 func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error) {
 	reqLogger := r.Log.WithValues("Request.NamespacedName", request.NamespacedName)

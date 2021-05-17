@@ -3,12 +3,6 @@ resources:
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
-- name: antrea-operator
-  newName: antrea/antrea-operator
-  newTag: v0.0.1-3e853cf.dirty
 - name: antrea/antrea-operator
-  newName: antrea/antrea-operator
-  newTag: v0.0.1
-- name: controller
-  newName: antrea-operator
-  newTag: latest
+  newName: registry.connect.redhat.com/wavefronthq/antrea-ocp-operator
+  newTag: 0.0.9
