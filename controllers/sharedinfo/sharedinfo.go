@@ -5,6 +5,7 @@ package sharedinfo
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -38,5 +39,10 @@ func New(mgr manager.Manager) (*SharedInfo, error) {
 		log.Error(err, "failed to get antrea-install", "namespace", operatortypes.OperatorNameSpace, "name", operatortypes.OperatorConfigName)
 		return nil, err
 	}
-	return &SharedInfo{AntreaPlatform: antreaInstall.Spec.AntreaPlatform}, nil
+	switch antreaInstall.Spec.AntreaPlatform {
+	case "openshift", "kubernetes":
+		return &SharedInfo{AntreaPlatform: antreaInstall.Spec.AntreaPlatform}, nil
+	default:
+		return nil, errors.New("invalid platform: platform should be openshift or kubernetes")
+	}
 }
