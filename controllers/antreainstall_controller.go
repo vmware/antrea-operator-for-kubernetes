@@ -145,9 +145,10 @@ func applyConfig(r *AntreaInstallReconciler, config configutil.Config, clusterCo
 	return reconcile.Result{}, nil
 }
 
-func fetchAntreaInstall(r *AntreaInstallReconciler, request ctrl.Request) (operConfig *operatorv1.AntreaInstall, err error, found bool, change bool) {
+func fetchAntreaInstall(r *AntreaInstallReconciler, request ctrl.Request) (*operatorv1.AntreaInstall, error, bool, bool) {
 	// Fetch antrea-install CR.
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Namespace: operatortypes.OperatorNameSpace, Name: operatortypes.OperatorConfigName}, operConfig)
+	operConfig := &operatorv1.AntreaInstall{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{Namespace: operatortypes.OperatorNameSpace, Name: operatortypes.OperatorConfigName}, operConfig)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			msg := fmt.Sprintf("%s CR not found", operatortypes.OperatorConfigName)
