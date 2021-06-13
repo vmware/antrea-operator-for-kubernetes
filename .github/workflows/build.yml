@@ -25,4 +25,3 @@ jobs:
         run: |
           echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
           docker push antrea/antrea-operator:latest
-          docker push antrea/antrea-operator-bundle:latest
