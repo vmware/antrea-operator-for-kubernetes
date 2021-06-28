@@ -42,7 +42,7 @@ rules:
 # Required by antrea-agent, antrea-controller and antctl
 - apiGroups: [""]
   resources: [nodes]
-  verbs: [get, watch, list]
+  verbs: [get, watch, list, patch]
 - apiGroups: [""]
   resources: [pods, endpoints]
   verbs: [get, watch, list, delete]
