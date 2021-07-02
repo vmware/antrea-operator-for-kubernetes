@@ -1,0 +1,36 @@
+name: Upload assets to release
+
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  build:
+    runs-on: [ubuntu-18.04]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build assets
+      env:
+        TAG: ${{ github.ref }}
+      run: |
+        mkdir assets
+        VERSION="${TAG:10}" ./hack/prepare-assets.sh ./assets
+    - name: Upload OCP4 tarball
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./assets/ocp4.tar.gz
+        asset_name: ocp4.tar.gz
+        asset_content_type: application/octet-stream
+    - name: Upload bundle image tarball
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./assets/bundle-image.tar.gz
+        asset_name: bundle-image.tar.gz
+        asset_content_type: application/octet-stream
