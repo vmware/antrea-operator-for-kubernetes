@@ -14,7 +14,7 @@ RUN yum install -y epel-release && \
 FROM registry.access.redhat.com/ubi8 as ovs-rpms
 
 # Some patches may not apply cleanly if another version is provided.
-ARG OVS_VERSION=2.14.0
+ARG OVS_VERSION
 
 COPY --from=base-rpms /tmp/build-packages/* /tmp/packages/
 COPY apply-patches.sh /
