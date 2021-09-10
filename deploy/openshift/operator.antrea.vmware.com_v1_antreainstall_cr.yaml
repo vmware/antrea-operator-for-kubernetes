@@ -26,7 +26,7 @@ spec:
     # Enable Antrea ClusterNetworkPolicy feature to complement K8s NetworkPolicy for cluster admins
     # to define security policies which apply to the entire cluster, and Antrea NetworkPolicy
     # feature that supports priorities, rule actions and externalEntities in the future.
-    #  AntreaPolicy: false
+      AntreaPolicy: true
 
     # Enable flowexporter which exports polled conntrack connections as IPFIX flow records from each
     # agent to a configured collector.
@@ -133,6 +133,7 @@ spec:
 
     # TLS min version from: VersionTLS10, VersionTLS11, VersionTLS12, VersionTLS13.
     #tlsMinVersion:
+    DNSServerOverride: 172.30.0.10
   antreaCNIConfig: |
     {
         "cniVersion":"0.3.0",
@@ -163,7 +164,7 @@ spec:
     # Enable Antrea ClusterNetworkPolicy feature to complement K8s NetworkPolicy for cluster admins
     # to define security policies which apply to the entire cluster, and Antrea NetworkPolicy
     # feature that supports priorities, rule actions and externalEntities in the future.
-    #  AntreaPolicy: false
+      AntreaPolicy: true
 
     # Enable collecting and exposing NetworkPolicy statistics.
     #  NetworkPolicyStats: false
@@ -193,5 +194,5 @@ spec:
 
     # TLS min version from: VersionTLS10, VersionTLS11, VersionTLS12, VersionTLS13.
     #tlsMinVersion:
-  antreaImage: projects.registry.vmware.com/antrea/antrea-ubi:v0.13.1
+  antreaImage: nsx-ujo-docker-local.artifactory.eng.vmware.com/antrea-ubi:1.2.2
   antreaPlatform: openshift
