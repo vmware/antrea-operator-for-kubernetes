@@ -22,6 +22,7 @@ spec:
 
     # Enable NodePortLocal feature to make the Pods reachable externally through NodePort
     #  NodePortLocal: true
+      NodePortLocal: false
 
     # Enable Antrea ClusterNetworkPolicy feature to complement K8s NetworkPolicy for cluster admins
     # to define security policies which apply to the entire cluster, and Antrea NetworkPolicy

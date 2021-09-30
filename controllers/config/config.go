@@ -38,10 +38,28 @@ func fillConfig(clusterConfig *configv1.Network, operConfig *operatorv1.AntreaIn
 	if err != nil {
 		return fmt.Errorf("failed to parse AntreaAgentConfig: %v", err)
 	}
+	antreaControllerConfig := make(map[string]interface{})
+	err = yaml.Unmarshal([]byte(operConfig.Spec.AntreaControllerConfig), &antreaControllerConfig)
+	if err != nil {
+		return fmt.Errorf("failed to parse AntreaControllerConfig: %v", err)
+	}
 	// Set service CIDR.
 	if clusterConfig == nil {
 		if _, ok := antreaAgentConfig[types.ServiceCIDROption]; !ok {
 			return errors.New("serviceCIDR should be specified on kubernetes.")
+		}
+		if nodeIPAM, ok := antreaControllerConfig["nodeIPAM"].(map[interface{}]interface{}); ok {
+			enableNodeIPAM, ok := nodeIPAM["enableNodeIPAM"].(bool)
+			if !ok {
+				return errors.New("enableNodeIPAM should be bool.")
+			}
+			if enableNodeIPAM {
+				if _, ok := antreaControllerConfig["clusterCIDRs"]; !ok {
+					return errors.New("clusterCIDRs should be specified on kubernetes.")
+				}
+			}
+		} else {
+			return errors.New("Invalid nodeIPAM.")
 		}
 	} else {
 		if serviceCIDR, ok := antreaAgentConfig[types.ServiceCIDROption].(string); !ok {
@@ -49,6 +67,29 @@ func fillConfig(clusterConfig *configv1.Network, operConfig *operatorv1.AntreaIn
 		} else if found := inSlice(serviceCIDR, clusterConfig.Spec.ServiceNetwork); !found {
 			log.Info("WARNING: option: %s is overwritten by cluster config")
 			antreaAgentConfig[types.ServiceCIDROption] = clusterConfig.Spec.ServiceNetwork[0]
+		}
+		// render antrea-controller config on oc
+		if nodeIPAM, ok := antreaControllerConfig["nodeIPAM"].(map[interface{}]interface{}); ok {
+			enableNodeIPAM, ok := nodeIPAM["enableNodeIPAM"].(bool)
+			if !ok {
+				return errors.New("enableNodeIPAM should be bool.")
+			}
+			if enableNodeIPAM {
+				if len(clusterConfig.Spec.ClusterNetwork) == 0 {
+					return errors.New("clusterCIDR should be specified.")
+				}
+				nodeIPAM := make(map[string]interface{})
+				clusterCIDRs := make([]string, len(clusterConfig.Spec.ClusterNetwork))
+				for index, value := range clusterConfig.Spec.ClusterNetwork {
+					clusterCIDRs[index] = value.CIDR
+				}
+				nodeIPAM["clusterCIDRs"] = clusterCIDRs
+				nodeIPAM["serviceCIDR"] = clusterConfig.Spec.ServiceNetwork[0]
+				nodeIPAM["nodeCIDRMaskSizeIPv4"] = clusterConfig.Spec.ClusterNetwork[0].HostPrefix
+				antreaControllerConfig["nodeIPAM"] = nodeIPAM
+			}
+		} else {
+			return errors.New("Invalid nodeIPAM.")
 		}
 	}
 	// Set default MTU.
@@ -64,7 +105,12 @@ func fillConfig(clusterConfig *configv1.Network, operConfig *operatorv1.AntreaIn
 	if err != nil {
 		return fmt.Errorf("failed to fill configurations in AntreaAgentConfig: %v", err)
 	}
+	updatedAntreaControllerConfig, err := yaml.Marshal(antreaControllerConfig)
+	if err != nil {
+		return fmt.Errorf("failed to fill configurations in AntreaControllerConfig: %v", err)
+	}
 	operConfig.Spec.AntreaAgentConfig = string(updatedAntreaAgentConfig)
+	operConfig.Spec.AntreaControllerConfig = string(updatedAntreaControllerConfig)
 	return nil
 }
 
