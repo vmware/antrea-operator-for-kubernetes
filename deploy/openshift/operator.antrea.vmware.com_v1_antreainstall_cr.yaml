@@ -286,7 +286,7 @@ spec:
     #  Egress: false
 
     # Run Kubernetes NodeIPAMController with Antrea.
-    #  NodeIPAM: false
+      NodeIPAM: true
 
     # Enable flexible IPAM mode for Antrea. This mode allows to assign IP Ranges to Namespaces,
     # Deployments and StatefulSets via IP Pool annotation.
@@ -324,6 +324,7 @@ spec:
     nodeIPAM:
     # Enable the integrated Node IPAM controller within the Antrea controller.
     #  enableNodeIPAM: false
+      enableNodeIPAM: true
 
     # CIDR ranges for Pods in cluster. String array containing single CIDR range, or multiple ranges.
     # The CIDRs could be either IPv4 or IPv6. At most one CIDR may be specified for each IP family.
@@ -342,5 +343,6 @@ spec:
     # Mask size for IPv6 Node CIDR in IPv6 or dual-stack cluster. Value ignored when enableNodeIPAM is false
     # or when IPv6 Pod CIDR is not configured. Valid range is 64 to 126.
     #  nodeCIDRMaskSizeIPv6: 64
+      enableNodeIPAM: true
   antreaImage: projects.registry.vmware.com/antrea/antrea-ubi:latest
   antreaPlatform: openshift

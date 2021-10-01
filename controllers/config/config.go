@@ -86,6 +86,7 @@ func fillConfig(clusterConfig *configv1.Network, operConfig *operatorv1.AntreaIn
 				nodeIPAM["clusterCIDRs"] = clusterCIDRs
 				nodeIPAM["serviceCIDR"] = clusterConfig.Spec.ServiceNetwork[0]
 				nodeIPAM["nodeCIDRMaskSizeIPv4"] = clusterConfig.Spec.ClusterNetwork[0].HostPrefix
+				nodeIPAM["enableNodeIPAM"] = true
 				antreaControllerConfig["nodeIPAM"] = nodeIPAM
 			}
 		} else {
