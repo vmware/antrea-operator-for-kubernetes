@@ -33,8 +33,8 @@ With reference to the scale reported below, reported vulnerabilities will be dis
 For these lower-risk issues the fix process will proceed with the usual github workflow.
 
 ### Reference taxonomy for issue risk
-1. Vulnerability must be fixed in master and any other supported branch.
-2. Vulnerability must be fixed in master only for next release.
+1. Vulnerability must be fixed in main and any other supported branch.
+2. Vulnerability must be fixed in main only for next release.
 3. Vulnerability in experimental features or troubleshooting code.
 4. Vulnerability without practical attack vector (e.g.: needs GUID guessing).
 5. Not a vulnerability per se, but an opportunity to strengthen security (in code, architecture, protocols, and/or processes).
@@ -48,7 +48,7 @@ The reporter and Antrea operator maintainers, plus anyone they deem necessary to
 
 **Please refrain from creating a PR for the fix!**
 
-A fix is proposed as a patch to the current master branch, formatted with:
+A fix is proposed as a patch to the current main branch, formatted with:
 ```
 git format-patch --stdout HEAD~1 > path/to/local/file.patch
 ```

@@ -230,7 +230,7 @@ func stringSliceEqual(a, b []string) bool {
 
 // pluginCNIDir is the directory where plugins should install their CNI
 // configuration file. By default, it is where multus looks, unless multus
-// is disabled
+// is deactivated
 func pluginCNIConfDir(conf *ocoperv1.NetworkSpec) string {
 	if conf.DisableMultiNetwork == nil || !*conf.DisableMultiNetwork {
 		return network.MultusCNIConfDir
