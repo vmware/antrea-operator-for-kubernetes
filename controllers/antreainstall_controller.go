@@ -357,7 +357,7 @@ func (r *AntreaInstallReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // +kubebuilder:rbac:urls=/agentinfo;/addressgroups;/appliedtogroups;/networkpolicies;/ovsflows;/ovstracing;/podinterfaces,verbs=get
 // +kubebuilder:rbac:groups=security.openshift.io,resources=securitycontextconstraints,resourceNames=hostnetwork,verbs=use
 
-func (r *AntreaInstallReconciler) Reconcile(request ctrl.Request) (reconcile.Result, error) {
+func (r *AntreaInstallReconciler) Reconcile(cxt context.Context, request ctrl.Request) (reconcile.Result, error) {
 	return r.Adaptor.Reconcile(r, request)
 }
 

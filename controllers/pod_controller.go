@@ -49,7 +49,7 @@ func (r *PodReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 // Reconcile updates the ClusterOperator.Status to match the current state of the watched Deployments/DaemonSets
-func (r *PodReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *PodReconciler) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling pod update")
 
@@ -82,7 +82,7 @@ func (r *PodReconciler) isAntreaResource(request *reconcile.Request) bool {
 func (r *PodReconciler) recreateResourceIfNotExist(request *reconcile.Request) error {
 	r.SharedInfo.Lock()
 	defer r.SharedInfo.Unlock()
-	var curObject runtime.Object
+	var curObject client.Object
 	var objectSpec *uns.Unstructured
 	if request.Name == r.SharedInfo.AntreaAgentDaemonSetSpec.GetName() && request.Namespace == r.SharedInfo.AntreaAgentDaemonSetSpec.GetNamespace() {
 		curObject = &appsv1.DaemonSet{}
