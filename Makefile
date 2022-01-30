@@ -91,9 +91,6 @@ docker-build:
 	docker build -f build/Dockerfile . -t ${IMG}
 	docker tag ${IMG} antrea/antrea-operator
 
-antrea-build:
-	cd build/antrea && ./build_ubi.sh --tag ${TAG} --antrea-version ${VERSION}
-
 # find or download controller-gen
 # download controller-gen if necessary
 controller-gen:
