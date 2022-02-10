@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 
 	configv1 "github.com/openshift/api/config/v1"
 	ocoperv1 "github.com/openshift/api/operator/v1"
@@ -91,7 +92,6 @@ func applyConfig(r *AntreaInstallReconciler, config configutil.Config, clusterCo
 	}
 
 	// Compare configurations change.
-	// TODO why not r.AppliedOperConfig?
 	appliedConfig, err := r.getAppliedOperConfig()
 	if err != nil {
 		log.Error(err, "failed to get applied config")
@@ -366,13 +366,25 @@ func (r *AntreaInstallReconciler) getAppliedOperConfig() (*operatorv1.AntreaInst
 		return r.AppliedOperConfig, nil
 	}
 	operConfig := &operatorv1.AntreaInstall{}
-	antreaConfig := corev1.ConfigMap{}
-	if err := r.Client.Get(context.TODO(), types.NamespacedName{Namespace: operatortypes.AntreaNamespace, Name: operatortypes.AntreaConfigMapName}, &antreaConfig); err != nil {
+	var antreaConfig *corev1.ConfigMap
+	configList := &corev1.ConfigMapList{}
+	label := map[string]string{"app": "antrea"}
+	if err := r.Client.List(context.TODO(), configList, client.InNamespace(operatortypes.AntreaNamespace), client.MatchingLabels(label)); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil, nil
 		} else {
 			return nil, err
 		}
+	}
+	for i := range configList.Items {
+		if strings.HasPrefix(configList.Items[i].Name, operatortypes.AntreaConfigMapName) {
+			antreaConfig = &configList.Items[i]
+			break
+		}
+	}
+	if antreaConfig == nil {
+		log.Info("no antrea-config found")
+		return nil, nil
 	}
 	antreaControllerDeployment := appsv1.Deployment{}
 	if err := r.Client.Get(context.TODO(), types.NamespacedName{Namespace: operatortypes.AntreaNamespace, Name: operatortypes.AntreaControllerDeploymentName}, &antreaControllerDeployment); err != nil {
