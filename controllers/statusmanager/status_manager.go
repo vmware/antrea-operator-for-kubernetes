@@ -269,6 +269,10 @@ func (status *StatusManager) setAntreaInstallStatus(conditions *[]configv1.Clust
 	antreaInstall := &operatorv1.AntreaInstall{}
 	err := status.client.Get(context.TODO(), types.NamespacedName{Namespace: operatortypes.OperatorNameSpace, Name: operatortypes.OperatorConfigName}, antreaInstall)
 	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			log.Info("AntreaInstall not found, skipping set AntreaInstall status")
+			return nil
+		}
 		log.Error(err, "failed to get AntreaInstall")
 		return err
 	}
