@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 
+	"k8s.io/utils/net"
+
 	gocni "github.com/containerd/go-cni"
 	configv1 "github.com/openshift/api/config/v1"
 	ocoperv1 "github.com/openshift/api/operator/v1"
@@ -15,6 +17,8 @@ import (
 	"gopkg.in/yaml.v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 
+	ctlconfig "github.com/vmware/antrea-operator-for-kubernetes/antrea_import/config/controller"
+	"github.com/vmware/antrea-operator-for-kubernetes/antrea_import/features"
 	operatorv1 "github.com/vmware/antrea-operator-for-kubernetes/api/v1"
 	"github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
 	"github.com/vmware/antrea-operator-for-kubernetes/version"
@@ -32,7 +36,7 @@ type ConfigOc struct{}
 
 type ConfigK8s struct{}
 
-func fillConfig(clusterConfig *configv1.Network, operConfig *operatorv1.AntreaInstall) error {
+func fillAgentConfig(clusterConfig *configv1.Network, operConfig *operatorv1.AntreaInstall) error {
 	antreaAgentConfig := make(map[string]interface{})
 	err := yaml.Unmarshal([]byte(operConfig.Spec.AntreaAgentConfig), &antreaAgentConfig)
 	if err != nil {
@@ -56,10 +60,6 @@ func fillConfig(clusterConfig *configv1.Network, operConfig *operatorv1.AntreaIn
 	if !ok {
 		antreaAgentConfig[types.DefaultMTUOption] = types.DefaultMTU
 	}
-	// Set Antrea image.
-	if operConfig.Spec.AntreaImage == "" {
-		operConfig.Spec.AntreaImage = types.DefaultAntreaImage
-	}
 	updatedAntreaAgentConfig, err := yaml.Marshal(antreaAgentConfig)
 	if err != nil {
 		return fmt.Errorf("failed to fill configurations in AntreaAgentConfig: %v", err)
@@ -68,12 +68,94 @@ func fillConfig(clusterConfig *configv1.Network, operConfig *operatorv1.AntreaIn
 	return nil
 }
 
+func fillControllerConfig(clusterConfig *configv1.Network, operConfig *operatorv1.AntreaInstall) error {
+	var controllerConfig ctlconfig.ControllerConfig
+	err := yaml.Unmarshal([]byte(operConfig.Spec.AntreaControllerConfig), &controllerConfig)
+	if err != nil {
+		return fmt.Errorf("failed to parse AntreaControllerConfig: %v", err)
+	}
+
+	//Turn on NodeIPAM featureGate.
+	if controllerConfig.FeatureGates == nil {
+		controllerConfig.FeatureGates = make(map[string]bool)
+	}
+	controllerConfig.FeatureGates[string(features.NodeIPAM)] = true
+	controllerConfig.NodeIPAM.EnableNodeIPAM = true
+
+	if clusterConfig != nil {
+		ip4found := false
+		ip6found := false
+
+		for _, cidr := range clusterConfig.Spec.ClusterNetwork {
+			if net.IsIPv4CIDRString(cidr.CIDR) {
+				if !ip4found {
+					ip4found = true
+					controllerConfig.NodeIPAM.ClusterCIDRs = append(controllerConfig.NodeIPAM.ClusterCIDRs, cidr.CIDR)
+					controllerConfig.NodeIPAM.NodeCIDRMaskSizeIPv4 = int(cidr.HostPrefix)
+				}
+			} else {
+				if !ip6found {
+					ip6found = true
+					controllerConfig.NodeIPAM.ClusterCIDRs = append(controllerConfig.NodeIPAM.ClusterCIDRs, cidr.CIDR)
+					controllerConfig.NodeIPAM.NodeCIDRMaskSizeIPv6 = int(cidr.HostPrefix)
+				}
+			}
+		}
+
+		// Set service CIDR
+		ip4found = false
+		ip6found = false
+
+		for _, svcCIDR := range clusterConfig.Spec.ServiceNetwork {
+			if net.IsIPv4CIDRString(svcCIDR) {
+				if !ip4found {
+					ip4found = true
+					controllerConfig.NodeIPAM.ServiceCIDR = svcCIDR
+				}
+			} else {
+				if !ip6found {
+					ip6found = true
+					controllerConfig.NodeIPAM.ServiceCIDRv6 = svcCIDR
+				}
+			}
+		}
+	}
+
+	updatedAntreaControllerConfig, err := yaml.Marshal(controllerConfig)
+	if err != nil {
+		return fmt.Errorf("failed to fill configurations in AntreaControllerConfig: %v", err)
+	}
+	operConfig.Spec.AntreaControllerConfig = string(updatedAntreaControllerConfig)
+	return nil
+}
+
+func fillConfig(clusterConfig *configv1.Network, operConfig *operatorv1.AntreaInstall, isOpenShift bool) error {
+	err := fillAgentConfig(clusterConfig, operConfig)
+	if err != nil {
+		return err
+	}
+
+	if isOpenShift {
+		err = fillControllerConfig(clusterConfig, operConfig)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Set Antrea image.
+	if operConfig.Spec.AntreaImage == "" {
+		operConfig.Spec.AntreaImage = types.DefaultAntreaImage
+	}
+
+	return nil
+}
+
 func (c *ConfigOc) FillConfigs(clusterConfig *configv1.Network, operConfig *operatorv1.AntreaInstall) error {
-	return fillConfig(clusterConfig, operConfig)
+	return fillConfig(clusterConfig, operConfig, true)
 }
 
 func (c *ConfigK8s) FillConfigs(clusterConfig *configv1.Network, operConfig *operatorv1.AntreaInstall) error {
-	return fillConfig(clusterConfig, operConfig)
+	return fillConfig(clusterConfig, operConfig, false)
 }
 
 func validateConfig(clusterConfig *configv1.Network, operConfig *operatorv1.AntreaInstall) error {

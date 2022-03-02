@@ -1,0 +1,2 @@
+Files within the following directory hierarchy are imports from the Antrea repo.
+The files are copied into the directory to avoid importing Antrea.
