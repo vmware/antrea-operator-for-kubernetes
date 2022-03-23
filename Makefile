@@ -145,6 +145,10 @@ bundle-build:
 antrea-manifest:
 	./hack/generate-manifest.sh > ./antrea-manifest/antrea.yml
 
+role-yamls:
+	./hack/generate-role-yaml.sh > ./deploy/kubernetes/role.yaml
+	./hack/generate-role-yaml.sh > ./deploy/openshift/role.yaml
+
 # Generate package manifests.
 packagemanifests: kustomize manifests
 	operator-sdk generate kustomize manifests -q
