@@ -1,0 +1,7 @@
+configMapGenerator:
+- name: antrea-config
+  behavior: merge
+  files:
+  - <AGENT_CONF_FILE>
+  - <CONTROLLER_CONF_FILE>
+  - <CNI_CONFLIST_FILE>
