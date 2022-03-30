@@ -9,6 +9,8 @@ import (
 
 	"k8s.io/utils/net"
 
+	ctlconfig "antrea.io/antrea/pkg/config/controller"
+	"antrea.io/antrea/pkg/features"
 	gocni "github.com/containerd/go-cni"
 	configv1 "github.com/openshift/api/config/v1"
 	ocoperv1 "github.com/openshift/api/operator/v1"
@@ -17,8 +19,6 @@ import (
 	"gopkg.in/yaml.v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	ctlconfig "github.com/vmware/antrea-operator-for-kubernetes/antrea_import/config/controller"
-	"github.com/vmware/antrea-operator-for-kubernetes/antrea_import/features"
 	operatorv1 "github.com/vmware/antrea-operator-for-kubernetes/api/v1"
 	"github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
 	"github.com/vmware/antrea-operator-for-kubernetes/version"
