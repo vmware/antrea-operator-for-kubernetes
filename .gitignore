@@ -85,3 +85,5 @@ tags
 # End of https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
 ### kube cache ###
 .kube
+### kustomize image ###
+hack/.bin/kustomize

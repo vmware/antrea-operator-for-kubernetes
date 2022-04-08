@@ -141,6 +141,10 @@ bundle-build:
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 	docker tag ${BUNDLE_IMG} antrea/antrea-operator-bundle
 
+.PHONY: antrea-manifest
+antrea-manifest:
+	./hack/generate-manifest.sh > ./antrea-manifest/antrea.yml
+
 # Generate package manifests.
 packagemanifests: kustomize manifests
 	operator-sdk generate kustomize manifests -q

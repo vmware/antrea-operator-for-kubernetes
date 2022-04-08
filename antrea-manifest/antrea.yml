@@ -616,6 +616,30 @@ spec:
                               match:
                                 type: string
                             type: object
+                          nodeSelector:
+                            properties:
+                              matchExpressions:
+                                items:
+                                  properties:
+                                    key:
+                                      type: string
+                                    operator:
+                                      enum:
+                                      - In
+                                      - NotIn
+                                      - Exists
+                                      - DoesNotExist
+                                      type: string
+                                    values:
+                                      items:
+                                        pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
+                                        type: string
+                                      type: array
+                                  type: object
+                                type: array
+                              matchLabels:
+                                x-kubernetes-preserve-unknown-fields: true
+                            type: object
                           podSelector:
                             properties:
                               matchExpressions:
@@ -786,6 +810,30 @@ spec:
                                 enum:
                                 - Self
                                 type: string
+                            type: object
+                          nodeSelector:
+                            properties:
+                              matchExpressions:
+                                items:
+                                  properties:
+                                    key:
+                                      type: string
+                                    operator:
+                                      enum:
+                                      - In
+                                      - NotIn
+                                      - Exists
+                                      - DoesNotExist
+                                      type: string
+                                    values:
+                                      items:
+                                        pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
+                                        type: string
+                                      type: array
+                                  type: object
+                                type: array
+                              matchLabels:
+                                x-kubernetes-preserve-unknown-fields: true
                             type: object
                           podSelector:
                             properties:
@@ -1206,7 +1254,9 @@ spec:
                       - format: ipv6
                       type: string
                     vlan:
-                      type: string
+                      maximum: 4094
+                      minimum: 0
+                      type: integer
                   type: object
                 type: array
               ipVersion:
@@ -1447,6 +1497,30 @@ spec:
                               matchLabels:
                                 x-kubernetes-preserve-unknown-fields: true
                             type: object
+                          nodeSelector:
+                            properties:
+                              matchExpressions:
+                                items:
+                                  properties:
+                                    key:
+                                      type: string
+                                    operator:
+                                      enum:
+                                      - In
+                                      - NotIn
+                                      - Exists
+                                      - DoesNotExist
+                                      type: string
+                                    values:
+                                      items:
+                                        pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
+                                        type: string
+                                      type: array
+                                  type: object
+                                type: array
+                              matchLabels:
+                                x-kubernetes-preserve-unknown-fields: true
+                            type: object
                           podSelector:
                             properties:
                               matchExpressions:
@@ -1563,6 +1637,30 @@ spec:
                                 type: string
                             type: object
                           namespaceSelector:
+                            properties:
+                              matchExpressions:
+                                items:
+                                  properties:
+                                    key:
+                                      type: string
+                                    operator:
+                                      enum:
+                                      - In
+                                      - NotIn
+                                      - Exists
+                                      - DoesNotExist
+                                      type: string
+                                    values:
+                                      items:
+                                        pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
+                                        type: string
+                                      type: array
+                                  type: object
+                                type: array
+                              matchLabels:
+                                x-kubernetes-preserve-unknown-fields: true
+                            type: object
+                          nodeSelector:
                             properties:
                               matchExpressions:
                                 items:
@@ -2171,6 +2269,11 @@ rules:
   - get
   - watch
   - list
+- apiGroups:
+  - ""
+  resources:
+  - nodes/status
+  verbs:
   - patch
 - apiGroups:
   - ""
@@ -2180,6 +2283,11 @@ rules:
   - get
   - watch
   - list
+- apiGroups:
+  - ""
+  resources:
+  - pods/status
+  verbs:
   - patch
 - apiGroups:
   - ""
@@ -2197,7 +2305,6 @@ rules:
   - services/status
   verbs:
   - update
-  - patch
 - apiGroups:
   - discovery.k8s.io
   resources:
@@ -2356,6 +2463,7 @@ rules:
   - ""
   resources:
   - pods
+  - services
   - namespaces
   - configmaps
   verbs:
@@ -2374,14 +2482,9 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - services
   - services/status
   verbs:
-  - get
-  - watch
-  - list
   - update
-  - patch
 - apiGroups:
   - networking.k8s.io
   resources:
@@ -2641,10 +2744,9 @@ data:
 {{.AntreaControllerConfig | indent 4}}
 kind: ConfigMap
 metadata:
-  annotations: {}
   labels:
     app: antrea
-  name: antrea-config-82b78c27h8
+  name: antrea-config-84c89k9k9m
   namespace: kube-system
 ---
 apiVersion: v1
@@ -2666,13 +2768,13 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    release.openshift.io/version: "{{.ReleaseVersion}}"
   labels:
     app: antrea
     component: antrea-controller
   name: antrea-controller
   namespace: kube-system
-  annotations:
-    release.openshift.io/version: "{{.ReleaseVersion}}"
 spec:
   replicas: 1
   selector:
@@ -2717,7 +2819,7 @@ spec:
             fieldRef:
               fieldPath: spec.serviceAccountName
         - name: ANTREA_CONFIG_MAP_NAME
-          value: antrea-config-82b78c27h8
+          value: antrea-config-84c89k9k9m
         image: {{.AntreaImage}}
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -2768,7 +2870,7 @@ spec:
         key: node-role.kubernetes.io/master
       volumes:
       - configMap:
-          name: antrea-config-82b78c27h8
+          name: antrea-config-84c89k9k9m
         name: antrea-config
       - name: antrea-controller-tls
         secret:
@@ -2828,13 +2930,13 @@ spec:
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
+  annotations:
+    release.openshift.io/version: "{{.ReleaseVersion}}"
   labels:
     app: antrea
     component: antrea-agent
   name: antrea-agent
   namespace: kube-system
-  annotations:
-    release.openshift.io/version: "{{.ReleaseVersion}}"
 spec:
   selector:
     matchLabels:
@@ -2969,6 +3071,9 @@ spec:
       initContainers:
       - command:
         - install_cni
+        env:
+        - name: SKIP_CNI_BINARIES
+          value: ""
         image: {{.AntreaImage}}
         imagePullPolicy: IfNotPresent
         name: install-cni
@@ -3005,15 +3110,15 @@ spec:
       - effect: NoExecute
         operator: Exists
       volumes:
-      - configMap:
-          name: antrea-config-82b78c27h8
-        name: antrea-config
-      - hostPath:
-          path: {{.CNIConfDir}}
-        name: host-cni-conf
       - hostPath:
           path: {{.CNIBinDir}}
         name: host-cni-bin
+      - hostPath:
+          path: {{.CNIConfDir}}
+        name: host-cni-conf
+      - configMap:
+          name: antrea-config-84c89k9k9m
+        name: antrea-config
       - hostPath:
           path: /proc
         name: host-proc
