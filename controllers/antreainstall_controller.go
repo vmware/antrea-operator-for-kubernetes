@@ -349,11 +349,12 @@ func (r *AntreaInstallReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // +kubebuilder:rbac:groups=authorization.k8s.io,resources=subjectaccessreviews,verbs=create
 // +kubebuilder:rbac:groups=authentication.k8s.io,resources=tokenreviews,verbs=create
 // +kubebuilder:rbac:groups=networking.k8s.io,resources=networkpolicies,verbs=get;watch;list
-// +kubebuilder:rbac:groups=ops.antrea.tanzu.vmware.com,resources=traceflows;traceflows/status,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=clusterinformation.antrea.tanzu.vmware.com,resources=antreaagentinfos;antreacontrollerinfos,verbs=get;list;create;update;delete
-// +kubebuilder:rbac:groups=networking.antrea.tanzu.vmware.com,resources=networkpolicies;appliedtogroups;addressgroups,verbs=get;watch;list;delete
-// +kubebuilder:rbac:groups=security.antrea.tanzu.vmware.com,resources=clusternetworkpolicies,verbs=get;watch;list;delete
-// +kubebuilder:rbac:groups=system.antrea.tanzu.vmware.com,resources=controllerinfos;agentinfos;supportbundles;supportbundles/download,verbs=get;watch;list;post;delete
+// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations;validatingwebhookconfigurations,verbs=create
+// +kubebuilder:rbac:groups=crd.antrea.io,resources=traceflows;traceflows/status,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=crd.antrea.io,resources=antreaagentinfos;antreacontrollerinfos,verbs=get;list;create;update;delete
+// +kubebuilder:rbac:groups=controlplane.antrea.io,resources=networkpolicies;appliedtogroups;addressgroups,verbs=get;watch;list;delete
+// +kubebuilder:rbac:groups=crd.antrea.io,resources=clusternetworkpolicies,verbs=get;watch;list;delete
+// +kubebuilder:rbac:groups=system.antrea.io,resources=agentinfos;supportbundles;supportbundles/download,verbs=get;watch;list;post;delete
 // +kubebuilder:rbac:urls=/agentinfo;/addressgroups;/appliedtogroups;/networkpolicies;/ovsflows;/ovstracing;/podinterfaces,verbs=get
 // +kubebuilder:rbac:groups=security.openshift.io,resources=securitycontextconstraints,resourceNames=hostnetwork,verbs=use
 
