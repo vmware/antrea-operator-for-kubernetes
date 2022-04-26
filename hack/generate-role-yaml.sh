@@ -64,7 +64,7 @@ curl -sL $ANTREA_URL | tar xz -C $ANTREA_DIR
 # generate-role-yaml.py requires PyYAML, install it just in case that it's missing
 pip3 -q install PyYAML
 
-$THIS_DIR/generate-role-yaml.py $THIS_DIR/../build/yamls/base/role.yaml \
+$THIS_DIR/generate-role-yaml.py $THIS_DIR/../config/rbac/role.yaml \
                                 $ANTREA_ROOT/build/yamls/base/agent-rbac.yml \
                                 $ANTREA_ROOT/build/yamls/base/controller-rbac.yml \
                                 $ANTREA_ROOT/build/yamls/base/antctl.yml \

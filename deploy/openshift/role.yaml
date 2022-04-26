@@ -3,146 +3,639 @@ kind: ClusterRole
 metadata:
   name: antrea-operator
 rules:
-- apiGroups: [""]
-  resources: [endpoints]
-  verbs: [get, list, watch]
-- apiGroups: [""]
-  resources: [pods, configmaps, namespaces, serviceaccounts, secrets, services]
-  verbs: [create, get, list, patch, delete, update, watch, deletecollection]
-- apiGroups: [apps]
-  resources: [deployments, daemonsets]
-  verbs: [create, get, list, patch, delete, update, watch]
-- apiGroups: [admissionregistration.k8s.io]
-  resources: [mutatingwebhookconfigurations, validatingwebhookconfigurations]
-  verbs: [get, update, create]
-- apiGroups: [apiextensions.k8s.io]
-  resources: [customresourcedefinitions]
-  verbs: [create, get, list, patch, update, watch, delete]
-- apiGroups: [discovery.k8s.io]
-  resources: [endpointslices]
-  verbs: [get, watch, list]
-- apiGroups: [rbac.authorization.k8s.io]
-  resources: [clusterroles, clusterrolebindings]
-  verbs: [create, get, list, patch, update, watch, delete]
-- apiGroups: [config.openshift.io]
-  resources: [clusteroperators]
-  verbs: [create, get, list, patch, update, watch, delete]
-- apiGroups: [config.openshift.io]
-  resources: [clusteroperators/status]
-  verbs: [get, patch, update]
-- apiGroups: [config.openshift.io]
-  resources: [networks, networks/finalizers]
-  verbs: [get, list, watch, patch, update]
-- apiGroups: [operator.openshift.io]
-  resources: [networks]
-  verbs: [get, list, watch, patch, update]
-- apiGroups: [operator.antrea.vmware.com]
-  resources: [antreainstalls, antreainstalls/status]
-  verbs: [get, list, watch, create,patch, update]
-# Required by antrea-agent, antrea-controller and antctl
-- apiGroups: [""]
-  resources: [services/status]
-  verbs: [get, watch, list]
-- apiGroups: [""]
-  resources: [services/status]
-  verbs: [get, watch, list, update, patch]
-- apiGroups: [""]
-  resources: [nodes]
-  verbs: [get, watch, list, patch]
-- apiGroups: [""]
-  resources: [pods, endpoints]
-  verbs: [get, watch, list, delete]
-- apiGroups: [authentication.k8s.io]
-  resources: [tokenreviews]
-  verbs: [create]
-- apiGroups: [apps]
-  resources: [statefulsets]
-  verbs: [get, list, watch]
-- apiGroups: [authorization.k8s.io]
-  resources: [subjectaccessreviews]
-  verbs: [create]
-- apiGroups: [apiregistration.k8s.io]
-  resources: [apiservices]
-  verbs: [get, create, update, delete]
-- apiGroups: [controlplane.antrea.io]
-  resources: [networkpolicies, appliedtogroups, addressgroups]
-  verbs: [get, list, watch]
-- apiGroups: [controlplane.antrea.io]
-  resources: [nodestatssummaries]
-  verbs: [create]
-- apiGroups: [controlplane.antrea.io]
-  resources: [networkpolicies/status]
-  verbs: [create, get]
-- apiGroups: [crd.antrea.io]
-  resources: [clustergroups]
-  verbs: [get, create, update, delete, list, watch, patch]
-- apiGroups: [crd.antrea.io]
-  resources: [externalentities]
-  verbs: [get, watch, list, create, update, patch, delete]
-- apiGroups: [crd.antrea.io]
-  resources: [clustergroups/status]
-  verbs: [update]
-- apiGroups: [networking.k8s.io]
-  resources: [networkpolicies]
-  verbs: [get, watch, list]
-- apiGroups: [crd.antrea.io]
-  resources: [traceflows, traceflows/status]
-  verbs: [create, get, list, patch, update, watch, delete, delete]
-- apiGroups: [crd.antrea.io]
-  resources: [antreaagentinfos, antreacontrollerinfos]
-  verbs: [get, list, create, update, delete, delete]
-- apiGroups: [controlplane.antrea.io]
-  resources: [networkpolicies, appliedtogroups, addressgroups]
-  verbs: [get, watch, list, delete]
-- apiGroups: [crd.antrea.io]
-  resources: [clusternetworkpolicies, networkpolicies]
-  verbs: [get, create, update, delete, list, watch, patch]
-- apiGroups: [crd.antrea.io]
-  resources: [clusternetworkpolicies/status, networkpolicies/status]
-  verbs: [update]
-- apiGroups: [crd.antrea.io]
-  resources: [tiers]
-  verbs: [get, watch, list, create, update, patch, delete]
-- apiGroups: [stats.antrea.io]
-  resources: [networkpolicystats, antreaclusternetworkpolicystats, antreanetworkpolicystats]
-  verbs: [get, list]
-- apiGroups: [system.antrea.io]
-  resources: [controllerinfos, agentinfos, supportbundles, supportbundles/download]
-  verbs: [get, watch, list, post, delete]
-- apiGroups: [security.openshift.io]
-  resources: [hostnetwork, securitycontextconstraints]
-  verbs: [use]
-- apiGroups: [crd.antrea.io]
-  resources: [externalippools, ippools]
-  verbs: [get, watch, list]
-- apiGroups: [crd.antrea.io]
-  resources: [externalippools/status]
-  verbs: [update]
-- apiGroups: [controlplane.antrea.io]
-  resources: [egressgroups]
-  verbs: [get, watch, list]
-- apiGroups: [crd.antrea.io]
-  resources: [egresses]
-  verbs: [get, watch, list, update, patch]
-- apiGroups: [crd.antrea.io]
-  resources: [egresses/status]
-  verbs: [update]
-- apiGroups: [crd.antrea.io]
-  resources: [ippools/status]
-  verbs: [update]
-- apiGroups: [k8s.cni.cncf.io]
-  resources: [network-attachment-definitions]
-  verbs: [get, list, watch]
-
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - endpoints
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - namespaces
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - nodes/status
+  verbs:
+  - patch
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - pods/status
+  verbs:
+  - patch
+- apiGroups:
+  - ''
+  resources:
+  - serviceaccounts
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - services
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - services/status
+  verbs:
+  - update
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  verbs:
+  - create
+  - get
+  - update
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - validatingwebhookconfigurations
+  verbs:
+  - create
+  - get
+  - update
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apiregistration.k8s.io
+  resources:
+  - apiservices
+  verbs:
+  - create
+  - delete
+  - get
+  - update
+- apiGroups:
+  - apps
+  resources:
+  - daemonsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+- apiGroups:
+  - config.openshift.io
+  resources:
+  - clusteroperators
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - config.openshift.io
+  resources:
+  - clusteroperators/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - config.openshift.io
+  resources:
+  - networks
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - config.openshift.io
+  resources:
+  - networks/finalizers
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - controlplane.antrea.io
+  resources:
+  - addressgroups
+  verbs:
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
+  - controlplane.antrea.io
+  resources:
+  - appliedtogroups
+  verbs:
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
+  - controlplane.antrea.io
+  resources:
+  - egressgroups
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - controlplane.antrea.io
+  resources:
+  - networkpolicies
+  verbs:
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
+  - controlplane.antrea.io
+  resources:
+  - networkpolicies/status
+  verbs:
+  - create
+  - get
+- apiGroups:
+  - controlplane.antrea.io
+  resources:
+  - nodestatssummaries
+  verbs:
+  - create
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - antreaagentinfos
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - antreacontrollerinfos
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - clustergroups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - clustergroups/status
+  verbs:
+  - update
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - clusternetworkpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - clusternetworkpolicies/status
+  verbs:
+  - update
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - egresses
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - egresses/status
+  verbs:
+  - update
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - externalentities
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - externalippools
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - externalippools/status
+  verbs:
+  - update
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - ippools
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - ippools/status
+  verbs:
+  - update
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - networkpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - networkpolicies/status
+  verbs:
+  - update
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - tiers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - traceflows
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - traceflows/status
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - k8s.cni.cncf.io
+  resources:
+  - network-attachment-definitions
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - operator.antrea.vmware.com
+  resources:
+  - antreainstalls
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - operator.antrea.vmware.com
+  resources:
+  - antreainstalls/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - operator.openshift.io
+  resources:
+  - networks
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterrolebindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterroles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - security.openshift.io
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
+- apiGroups:
+  - stats.antrea.io
+  resources:
+  - antreaclusternetworkpolicystats
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - stats.antrea.io
+  resources:
+  - antreanetworkpolicystats
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - stats.antrea.io
+  resources:
+  - networkpolicystats
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - system.antrea.io
+  resources:
+  - agentinfos
+  verbs:
+  - delete
+  - get
+  - list
+  - post
+  - watch
+- apiGroups:
+  - system.antrea.io
+  resources:
+  - controllerinfos
+  verbs:
+  - get
+- apiGroups:
+  - system.antrea.io
+  resources:
+  - supportbundles
+  verbs:
+  - delete
+  - get
+  - list
+  - post
+  - watch
+- apiGroups:
+  - system.antrea.io
+  resources:
+  - supportbundles/download
+  verbs:
+  - delete
+  - get
+  - list
+  - post
+  - watch
+- nonResourceURLs:
+  - /addressgroups
+  verbs:
+  - get
 - nonResourceURLs:
   - /agentinfo
-  - /addressgroups
+  verbs:
+  - get
+- nonResourceURLs:
   - /appliedtogroups
+  verbs:
+  - get
+- nonResourceURLs:
   - /featuregates
+  verbs:
+  - get
+- nonResourceURLs:
   - /loglevel
+  verbs:
+  - get
+- nonResourceURLs:
   - /networkpolicies
+  verbs:
+  - get
+- nonResourceURLs:
   - /ovsflows
+  verbs:
+  - get
+- nonResourceURLs:
   - /ovstracing
+  verbs:
+  - get
+- nonResourceURLs:
   - /podinterfaces
   verbs:
   - get
