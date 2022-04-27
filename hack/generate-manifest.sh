@@ -26,7 +26,7 @@ function print_help {
 }
 
 MODE="dev"
-ANTREA_VERSION="main"
+ANTREA_VERSION=${ANTREA_VERSION:-"main"}
 
 while [[ $# -gt 0 ]]
 do
@@ -68,7 +68,7 @@ if [ "$ANTREA_VERSION" == "main" ]; then
     ANTREA_ROOT=$ANTREA_DIR/antrea-main
 else
     ANTREA_URL="https://github.com/antrea-io/antrea/archive/refs/tags/v${ANTREA_VERSION}.tar.gz"
-    ANTREA_ROOT=$ANTREA_DIR/antrea-v$ANTREA_VERSION
+    ANTREA_ROOT=$ANTREA_DIR/antrea-$ANTREA_VERSION
 fi
 curl -sL $ANTREA_URL | tar xz -C $ANTREA_DIR
 

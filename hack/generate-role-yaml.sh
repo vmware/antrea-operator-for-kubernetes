@@ -25,7 +25,7 @@ function print_help {
     echoerr "Try '$0 --help' for more information."
 }
 
-ANTREA_VERSION="main"
+ANTREA_VERSION=${ANTREA_VERSION:-"main"}
 
 while [[ $# -gt 0 ]]
 do
@@ -65,9 +65,6 @@ curl -sL $ANTREA_URL | tar xz -C $ANTREA_DIR
 pip3 -q install PyYAML
 
 $THIS_DIR/generate-role-yaml.py $THIS_DIR/../config/rbac/role.yaml \
-                                $ANTREA_ROOT/build/yamls/base/agent-rbac.yml \
-                                $ANTREA_ROOT/build/yamls/base/controller-rbac.yml \
-                                $ANTREA_ROOT/build/yamls/base/antctl.yml \
-                                $ANTREA_ROOT/build/yamls/base/crds-rbac.yml
+                                $ANTREA_ROOT/build/yamls/antrea.yml
 
 rm -rf $TMP_DIR $ANTREA_DIR
