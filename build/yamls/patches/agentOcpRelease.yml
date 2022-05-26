@@ -1,0 +1,6 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: antrea-agent
+  annotations:
+    release.openshift.io/version: \"{{.ReleaseVersion}}\"

@@ -36,12 +36,6 @@ To build antrea operator binary. Run the following command.
 make bin
 ```
 
-To build Antrea UBI image . Run the following command.
-
-```
-make antrea-build
-```
-
 ## Try it out on OpenShift 4 cluster
 
 For Openshift 4 clusters, antrea operator will be deployed in the early phases

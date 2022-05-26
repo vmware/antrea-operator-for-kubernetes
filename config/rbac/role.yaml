@@ -42,6 +42,13 @@ rules:
   - list
   - watch
 - apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  - validatingwebhookconfigurations
+  verbs:
+  - create
+- apiGroups:
   - apiextensions.k8s.io
   resources:
   - customresourcedefinitions
@@ -88,17 +95,6 @@ rules:
   verbs:
   - create
 - apiGroups:
-  - clusterinformation.antrea.tanzu.vmware.com
-  resources:
-  - antreaagentinfos
-  - antreacontrollerinfos
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - update
-- apiGroups:
   - config.openshift.io
   resources:
   - clusteroperators
@@ -130,7 +126,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - networking.antrea.tanzu.vmware.com
+  - controlplane.antrea.io
   resources:
   - addressgroups
   - appliedtogroups
@@ -139,6 +135,39 @@ rules:
   - delete
   - get
   - list
+  - watch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - antreaagentinfos
+  - antreacontrollerinfos
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - clusternetworkpolicies
+  verbs:
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - traceflows
+  - traceflows/status
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - networking.k8s.io
@@ -179,19 +208,6 @@ rules:
   - update
   - watch
 - apiGroups:
-  - ops.antrea.tanzu.vmware.com
-  resources:
-  - traceflows
-  - traceflows/status
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
   - rbac.authorization.k8s.io
   resources:
   - clusterrolebindings
@@ -207,15 +223,6 @@ rules:
   - update
   - watch
 - apiGroups:
-  - security.antrea.tanzu.vmware.com
-  resources:
-  - clusternetworkpolicies
-  verbs:
-  - delete
-  - get
-  - list
-  - watch
-- apiGroups:
   - security.openshift.io
   resourceNames:
   - hostnetwork
@@ -224,10 +231,9 @@ rules:
   verbs:
   - use
 - apiGroups:
-  - system.antrea.tanzu.vmware.com
+  - system.antrea.io
   resources:
   - agentinfos
-  - controllerinfos
   - supportbundles
   - supportbundles/download
   verbs:
