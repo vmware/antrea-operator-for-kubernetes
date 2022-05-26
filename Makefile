@@ -79,8 +79,9 @@ deploy: manifests kustomize
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
-manifests: controller-gen
+manifests: controller-gen kustomize
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=antrea-operator webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(KUSTOMIZE) build config/crd > config/crd/operator.antrea.vmware.com_antreainstalls.yaml
 
 # Generate code
 generate: controller-gen
@@ -100,7 +101,7 @@ ifeq (, $(shell which controller-gen))
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.2 ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 CONTROLLER_GEN=$(GOBIN)/controller-gen
@@ -130,6 +131,8 @@ bundle: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image antrea/antrea-operator=$(BUNDLE_IMG)
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle
+	cp config/crd/operator.antrea.vmware.com_antreainstalls.yaml deploy/kubernetes/operator.antrea.vmware.com_antreainstalls_crd.yaml
+	cp config/crd/operator.antrea.vmware.com_antreainstalls.yaml deploy/openshift/operator.antrea.vmware.com_antreainstalls_crd.yaml
 
 .PHONY: ocpbundle
 ocpbundle: bundle
@@ -144,6 +147,10 @@ bundle-build:
 .PHONY: antrea-manifest
 antrea-manifest:
 	./hack/generate-manifest.sh > ./antrea-manifest/antrea.yml
+
+role-yamls:
+	./hack/generate-role-yaml.sh > ./deploy/kubernetes/role.yaml
+	./hack/generate-role-yaml.sh > ./deploy/openshift/role.yaml
 
 # Generate package manifests.
 packagemanifests: kustomize manifests
