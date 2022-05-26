@@ -4,7 +4,7 @@
 package types
 
 const (
-	DefaultAntreaImage     = "antrea/antrea-ubi:v0.9.1"
+	DefaultAntreaImage     = "antrea/antrea-ubi:latest"
 	DefaultManifestDir     = "antrea-manifest"
 	DefaultMTU         int = 1450
 )
