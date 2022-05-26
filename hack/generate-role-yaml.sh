@@ -49,16 +49,6 @@ done
 
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-source $THIS_DIR/verify-kustomize.sh
-
-if [ -z "$KUSTOMIZE" ]; then
-    KUSTOMIZE="$(verify_kustomize)"
-elif ! $KUSTOMIZE version > /dev/null 2>&1; then
-    echoerr "$KUSTOMIZE does not appear to be a valid kustomize binary"
-    print_help
-    exit 1
-fi
-
 # Get Antrea repository
 ANTREA_DIR=$(mktemp -d /tmp/antrea.XXXXXXX)
 
@@ -71,44 +61,10 @@ else
 fi
 curl -sL $ANTREA_URL | tar xz -C $ANTREA_DIR
 
-KUSTOMIZATION_DIR=$ANTREA_ROOT/build/yamls
+# generate-role-yaml.py requires PyYAML, install it just in case that it's missing
+pip3 -q install PyYAML
 
-TMP_DIR=$(mktemp -d /tmp/overlays.XXXXXXXX)
-
-mkdir $TMP_DIR/base
-pushd $TMP_DIR/base > /dev/null
-
-# Use antrea.yml from Antrea repo as base
-cp $ANTREA_ROOT/build/yamls/antrea.yml .
-touch kustomization.yml
-$KUSTOMIZE edit add resource antrea.yml
-
-# do all ConfigMap edits
-mkdir $TMP_DIR/configMap && cd $TMP_DIR/configMap
-
-BASE=../base
-cp $THIS_DIR/../build/yamls/configMap/* .
-$KUSTOMIZE edit add base $BASE
-
-BASE=../configMap
-cd $TMP_DIR
-mkdir osmft && cd osmft
-cp $THIS_DIR/../build/yamls/patches/*.yml .
-touch kustomization.yml
-$KUSTOMIZE edit add base $BASE
-$KUSTOMIZE edit add patch --path agentOcpRelease.yml
-$KUSTOMIZE edit add patch --path agentImage.yml
-$KUSTOMIZE edit add patch --path ovsImage.yml
-$KUSTOMIZE edit add patch --path installCniImage.yml
-$KUSTOMIZE edit add patch --path installCniConfDir.yml
-$KUSTOMIZE edit add patch --path installCniBinDir.yml
-$KUSTOMIZE edit add patch --path controllerOsRelease.yml
-$KUSTOMIZE edit add patch --path controllerImage.yml
-$KUSTOMIZE edit add patch --path agentImagePullPolicy.yml
-$KUSTOMIZE edit add patch --path controllerImagePullPolicy.yml
-
-$KUSTOMIZE build | sed 's/^\s*{{/{{/; s/\\"\({{.*}}\)\\"/"\1"/; '"s/'\({{.*}}\)'/\1/"
-
-popd > /dev/null
+$THIS_DIR/generate-role-yaml.py $THIS_DIR/../config/rbac/role.yaml \
+                                $ANTREA_ROOT/build/yamls/antrea.yml
 
 rm -rf $TMP_DIR $ANTREA_DIR
