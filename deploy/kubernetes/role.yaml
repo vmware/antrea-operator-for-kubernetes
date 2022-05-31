@@ -639,4 +639,8 @@ rules:
   - /podinterfaces
   verbs:
   - get
+- nonResourceURLs:
+  - /serviceexternalip
+  verbs:
+  - get
 
