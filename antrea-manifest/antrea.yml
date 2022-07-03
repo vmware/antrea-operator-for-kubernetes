@@ -2251,6 +2251,7 @@ rules:
   - /ovstracing
   - /podinterfaces
   - /featuregates
+  - /serviceexternalip
   verbs:
   - get
 ---
@@ -2299,12 +2300,6 @@ rules:
   - get
   - watch
   - list
-- apiGroups:
-  - ""
-  resources:
-  - services/status
-  verbs:
-  - update
 - apiGroups:
   - discovery.k8s.io
   resources:
@@ -2868,6 +2863,8 @@ spec:
         operator: Exists
       - effect: NoSchedule
         key: node-role.kubernetes.io/master
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
       volumes:
       - configMap:
           name: antrea-config-84c89k9k9m
