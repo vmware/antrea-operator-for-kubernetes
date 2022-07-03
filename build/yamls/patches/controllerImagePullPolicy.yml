@@ -8,4 +8,4 @@ spec:
     spec:
       containers:
         - name: antrea-controller
-          image: "{{.AntreaImage}}"
+          imagePullPolicy: IfNotPresent
