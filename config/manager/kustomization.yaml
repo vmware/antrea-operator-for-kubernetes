@@ -4,5 +4,5 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
 - name: antrea/antrea-operator
-  newName: registry.connect.redhat.com/wavefronthq/antrea-ocp-operator
-  newTag: 0.0.9
+  newName: antrea/antrea-operator-bundle
+  newTag: v1.7.0

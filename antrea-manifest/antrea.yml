@@ -574,6 +574,41 @@ spec:
                             type: string
                         type: object
                       type: array
+                    protocols:
+                      items:
+                        oneOf:
+                        - required:
+                          - icmp
+                        - required:
+                          - igmp
+                        properties:
+                          icmp:
+                            properties:
+                              icmpCode:
+                                maximum: 255
+                                minimum: 0
+                                type: integer
+                              icmpType:
+                                maximum: 255
+                                minimum: 0
+                                type: integer
+                            type: object
+                          igmp:
+                            properties:
+                              groupAddress:
+                                oneOf:
+                                - format: ipv4
+                                - format: ipv6
+                                type: string
+                              igmpType:
+                                enum:
+                                - 18
+                                - 22
+                                - 34
+                                type: integer
+                            type: object
+                        type: object
+                      type: array
                     to:
                       items:
                         properties:
@@ -614,6 +649,8 @@ spec:
                           namespaces:
                             properties:
                               match:
+                                enum:
+                                - Self
                                 type: string
                             type: object
                           nodeSelector:
@@ -886,6 +923,39 @@ spec:
                             - UDP
                             - SCTP
                             type: string
+                        type: object
+                      type: array
+                    protocols:
+                      items:
+                        oneOf:
+                        - required:
+                          - icmp
+                        - required:
+                          - igmp
+                        properties:
+                          icmp:
+                            properties:
+                              icmpCode:
+                                maximum: 255
+                                minimum: 0
+                                type: integer
+                              icmpType:
+                                maximum: 255
+                                minimum: 0
+                                type: integer
+                            type: object
+                          igmp:
+                            properties:
+                              groupAddress:
+                                oneOf:
+                                - format: ipv4
+                                - format: ipv6
+                                type: string
+                              igmpType:
+                                enum:
+                                - 17
+                                type: integer
+                            type: object
                         type: object
                       type: array
                   required:
@@ -1278,6 +1348,8 @@ spec:
                           properties:
                             containerID:
                               type: string
+                            ifName:
+                              type: string
                             name:
                               type: string
                             namespace:
@@ -1436,6 +1508,41 @@ spec:
                             - UDP
                             - SCTP
                             type: string
+                        type: object
+                      type: array
+                    protocols:
+                      items:
+                        oneOf:
+                        - required:
+                          - icmp
+                        - required:
+                          - igmp
+                        properties:
+                          icmp:
+                            properties:
+                              icmpCode:
+                                maximum: 255
+                                minimum: 0
+                                type: integer
+                              icmpType:
+                                maximum: 255
+                                minimum: 0
+                                type: integer
+                            type: object
+                          igmp:
+                            properties:
+                              groupAddress:
+                                oneOf:
+                                - format: ipv4
+                                - format: ipv6
+                                type: string
+                              igmpType:
+                                enum:
+                                - 18
+                                - 22
+                                - 34
+                                type: integer
+                            type: object
                         type: object
                       type: array
                     to:
@@ -1725,6 +1832,39 @@ spec:
                             - UDP
                             - SCTP
                             type: string
+                        type: object
+                      type: array
+                    protocols:
+                      items:
+                        oneOf:
+                        - required:
+                          - icmp
+                        - required:
+                          - igmp
+                        properties:
+                          icmp:
+                            properties:
+                              icmpCode:
+                                maximum: 255
+                                minimum: 0
+                                type: integer
+                              icmpType:
+                                maximum: 255
+                                minimum: 0
+                                type: integer
+                            type: object
+                          igmp:
+                            properties:
+                              groupAddress:
+                                oneOf:
+                                - format: ipv4
+                                - format: ipv6
+                                type: string
+                              igmpType:
+                                enum:
+                                - 17
+                                type: integer
+                            type: object
                         type: object
                       type: array
                   required:
@@ -2044,6 +2184,301 @@ spec:
                 type: array
               startTime:
                 type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: trafficcontrols.crd.antrea.io
+spec:
+  group: crd.antrea.io
+  names:
+    kind: TrafficControl
+    plural: trafficcontrols
+    shortNames:
+    - tc
+    singular: trafficcontrol
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - description: Specifies the direction of traffic that should be matched.
+      jsonPath: .spec.direction
+      name: Direction
+      type: string
+    - description: Specifies the action that should be taken for the traffic.
+      jsonPath: .spec.action
+      name: Action
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha2
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            properties:
+              action:
+                enum:
+                - Mirror
+                - Redirect
+                type: string
+              appliedTo:
+                properties:
+                  namespaceSelector:
+                    properties:
+                      matchExpressions:
+                        items:
+                          properties:
+                            key:
+                              type: string
+                            operator:
+                              enum:
+                              - In
+                              - NotIn
+                              - Exists
+                              - DoesNotExist
+                              type: string
+                            values:
+                              items:
+                                pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
+                                type: string
+                              type: array
+                          type: object
+                        type: array
+                      matchLabels:
+                        x-kubernetes-preserve-unknown-fields: true
+                    type: object
+                  podSelector:
+                    properties:
+                      matchExpressions:
+                        items:
+                          properties:
+                            key:
+                              type: string
+                            operator:
+                              enum:
+                              - In
+                              - NotIn
+                              - Exists
+                              - DoesNotExist
+                              type: string
+                            values:
+                              items:
+                                pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
+                                type: string
+                              type: array
+                          type: object
+                        type: array
+                      matchLabels:
+                        x-kubernetes-preserve-unknown-fields: true
+                    type: object
+                type: object
+              direction:
+                enum:
+                - Ingress
+                - Egress
+                - Both
+                type: string
+              returnPort:
+                oneOf:
+                - required:
+                  - ovsInternal
+                - required:
+                  - device
+                - required:
+                  - geneve
+                - required:
+                  - vxlan
+                - required:
+                  - gre
+                properties:
+                  device:
+                    properties:
+                      name:
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  geneve:
+                    properties:
+                      destinationPort:
+                        maximum: 65535
+                        minimum: 1
+                        type: integer
+                      remoteIP:
+                        oneOf:
+                        - format: ipv4
+                        - format: ipv6
+                        type: string
+                      vni:
+                        maximum: 16777215
+                        minimum: 0
+                        type: integer
+                    required:
+                    - remoteIP
+                    type: object
+                  gre:
+                    properties:
+                      key:
+                        maximum: 4294967295
+                        minimum: 0
+                        type: integer
+                      remoteIP:
+                        oneOf:
+                        - format: ipv4
+                        - format: ipv6
+                        type: string
+                    required:
+                    - remoteIP
+                    type: object
+                  ovsInternal:
+                    properties:
+                      name:
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  vxlan:
+                    properties:
+                      destinationPort:
+                        maximum: 65535
+                        minimum: 1
+                        type: integer
+                      remoteIP:
+                        oneOf:
+                        - format: ipv4
+                        - format: ipv6
+                        type: string
+                      vni:
+                        maximum: 16777215
+                        minimum: 0
+                        type: integer
+                    required:
+                    - remoteIP
+                    type: object
+                type: object
+              targetPort:
+                oneOf:
+                - required:
+                  - ovsInternal
+                - required:
+                  - device
+                - required:
+                  - geneve
+                - required:
+                  - vxlan
+                - required:
+                  - gre
+                - required:
+                  - erspan
+                properties:
+                  device:
+                    properties:
+                      name:
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  erspan:
+                    properties:
+                      dir:
+                        enum:
+                        - 0
+                        - 1
+                        type: integer
+                      hardwareID:
+                        type: integer
+                      index:
+                        type: integer
+                      remoteIP:
+                        oneOf:
+                        - format: ipv4
+                        - format: ipv6
+                        type: string
+                      sessionID:
+                        maximum: 1023
+                        minimum: 0
+                        type: integer
+                      version:
+                        enum:
+                        - 1
+                        - 2
+                        type: integer
+                    required:
+                    - remoteIP
+                    - version
+                    type: object
+                  geneve:
+                    properties:
+                      destinationPort:
+                        maximum: 65535
+                        minimum: 1
+                        type: integer
+                      remoteIP:
+                        oneOf:
+                        - format: ipv4
+                        - format: ipv6
+                        type: string
+                      vni:
+                        maximum: 16777215
+                        minimum: 0
+                        type: integer
+                    required:
+                    - remoteIP
+                    type: object
+                  gre:
+                    properties:
+                      key:
+                        maximum: 4294967295
+                        minimum: 0
+                        type: integer
+                      remoteIP:
+                        oneOf:
+                        - format: ipv4
+                        - format: ipv6
+                        type: string
+                    required:
+                    - remoteIP
+                    type: object
+                  ovsInternal:
+                    properties:
+                      name:
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  vxlan:
+                    properties:
+                      destinationPort:
+                        maximum: 65535
+                        minimum: 1
+                        type: integer
+                      remoteIP:
+                        oneOf:
+                        - format: ipv4
+                        - format: ipv6
+                        type: string
+                      vni:
+                        maximum: 16777215
+                        minimum: 0
+                        type: integer
+                    required:
+                    - remoteIP
+                    type: object
+                type: object
+            required:
+            - appliedTo
+            - direction
+            - action
+            - targetPort
             type: object
         required:
         - spec
@@ -2412,6 +2847,7 @@ rules:
   resources:
   - externalippools
   - ippools
+  - trafficcontrols
   verbs:
   - get
   - watch
@@ -2426,6 +2862,31 @@ rules:
   - k8s.cni.cncf.io
   resources:
   - network-attachment-definitions
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests
+  verbs:
+  - get
+  - watch
+  - list
+  - create
+- apiGroups:
+  - multicluster.crd.antrea.io
+  resources:
+  - gateways
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - multicluster.crd.antrea.io
+  resources:
+  - clusterinfoimports
   verbs:
   - get
   - list
@@ -2521,6 +2982,7 @@ rules:
   - ""
   resourceNames:
   - antrea-ca
+  - antrea-ipsec-ca
   - antrea-cluster-identity
   resources:
   - configmaps
@@ -2529,8 +2991,19 @@ rules:
   - update
 - apiGroups:
   - ""
+  resourceNames:
+  - antrea-ipsec-ca
+  resources:
+  - secrets
+  verbs:
+  - get
+  - update
+  - watch
+- apiGroups:
+  - ""
   resources:
   - configmaps
+  - secrets
   verbs:
   - create
 - apiGroups:
@@ -2568,6 +3041,30 @@ rules:
   verbs:
   - get
   - update
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests/approval
+  - certificatesigningrequests/status
+  verbs:
+  - update
+- apiGroups:
+  - certificates.k8s.io
+  resourceNames:
+  - antrea.io/antrea-agent-ipsec-tunnel
+  resources:
+  - signers
+  verbs:
+  - approve
+  - sign
 - apiGroups:
   - crd.antrea.io
   resources:
@@ -2689,7 +3186,6 @@ metadata:
   labels:
     app: antrea
   name: antctl
-  namespace: kube-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -2741,8 +3237,26 @@ kind: ConfigMap
 metadata:
   labels:
     app: antrea
-  name: antrea-config-84c89k9k9m
+  name: antrea-config
   namespace: kube-system
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  annotations:
+    kubernetes.io/service-account.name: antctl
+  name: antctl-service-account-token
+  namespace: kube-system
+type: kubernetes.io/service-account-token
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  annotations:
+    kubernetes.io/service-account.name: antrea-agent
+  name: antrea-agent-service-account-token
+  namespace: kube-system
+type: kubernetes.io/service-account-token
 ---
 apiVersion: v1
 kind: Service
@@ -2780,20 +3294,20 @@ spec:
     type: Recreate
   template:
     metadata:
+      annotations:
+        checksum/config: 750097fa4ed60fda68fedf2f31b06a1a62dbbe5dc9a38e9c1f9ddc861a389401
       labels:
         app: antrea
         component: antrea-controller
     spec:
       containers:
       - args:
-        - --config
-        - /etc/antrea/antrea-controller.conf
+        - --config=/etc/antrea/antrea-controller.conf
         - --logtostderr=false
         - --log_dir=/var/log/antrea
         - --alsologtostderr
         - --log_file_max_size=100
         - --log_file_max_num=4
-        - --v=0
         command:
         - antrea-controller
         env:
@@ -2814,7 +3328,7 @@ spec:
             fieldRef:
               fieldPath: spec.serviceAccountName
         - name: ANTREA_CONFIG_MAP_NAME
-          value: antrea-config-84c89k9k9m
+          value: antrea-config
         image: {{.AntreaImage}}
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -2867,7 +3381,7 @@ spec:
         key: node-role.kubernetes.io/control-plane
       volumes:
       - configMap:
-          name: antrea-config-84c89k9k9m
+          name: antrea-config
         name: antrea-config
       - name: antrea-controller-tls
         secret:
@@ -2942,6 +3456,7 @@ spec:
   template:
     metadata:
       annotations:
+        checksum/config: 750097fa4ed60fda68fedf2f31b06a1a62dbbe5dc9a38e9c1f9ddc861a389401
         kubectl.kubernetes.io/default-container: antrea-agent
       labels:
         app: antrea
@@ -2949,14 +3464,12 @@ spec:
     spec:
       containers:
       - args:
-        - --config
-        - /etc/antrea/antrea-agent.conf
+        - --config=/etc/antrea/antrea-agent.conf
         - --logtostderr=false
         - --log_dir=/var/log/antrea
         - --alsologtostderr
         - --log_file_max_size=100
         - --log_file_max_num=4
-        - --v=0
         command:
         - antrea-agent
         env:
@@ -3114,7 +3627,7 @@ spec:
           path: {{.CNIConfDir}}
         name: host-cni-conf
       - configMap:
-          name: antrea-config-84c89k9k9m
+          name: antrea-config
         name: antrea-config
       - hostPath:
           path: /proc

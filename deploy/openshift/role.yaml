@@ -74,6 +74,15 @@ rules:
 - apiGroups:
   - ''
   resources:
+  - secrets
+  verbs:
+  - create
+  - get
+  - update
+  - watch
+- apiGroups:
+  - ''
+  resources:
   - serviceaccounts
   verbs:
   - create
@@ -184,6 +193,34 @@ rules:
   - subjectaccessreviews
   verbs:
   - create
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests/approval
+  verbs:
+  - update
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests/status
+  verbs:
+  - update
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - signers
+  verbs:
+  - approve
+  - sign
 - apiGroups:
   - config.openshift.io
   resources:
@@ -439,6 +476,14 @@ rules:
   - update
   - watch
 - apiGroups:
+  - crd.antrea.io
+  resources:
+  - trafficcontrols
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - discovery.k8s.io
   resources:
   - endpointslices
@@ -450,6 +495,22 @@ rules:
   - k8s.cni.cncf.io
   resources:
   - network-attachment-definitions
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - multicluster.crd.antrea.io
+  resources:
+  - clusterinfoimports
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - multicluster.crd.antrea.io
+  resources:
+  - gateways
   verbs:
   - get
   - list
