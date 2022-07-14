@@ -25,7 +25,6 @@ function print_help {
     echoerr "Try '$0 --help' for more information."
 }
 
-MODE="dev"
 ANTREA_VERSION=${ANTREA_VERSION:-"main"}
 
 while [[ $# -gt 0 ]]
@@ -74,27 +73,25 @@ curl -sL $ANTREA_URL | tar xz -C $ANTREA_DIR
 
 KUSTOMIZATION_DIR=$ANTREA_ROOT/build/yamls
 
-TMP_DIR=$(mktemp -d $KUSTOMIZATION_DIR/overlays.XXXXXXXX)
+TMP_DIR=$(mktemp -d /tmp/overlays.XXXXXXXX)
 
-pushd $TMP_DIR > /dev/null
+mkdir $TMP_DIR/base
+pushd $TMP_DIR/base > /dev/null
 
-BASE=../../base
+# Use antrea.yml from Antrea repo as base
+cp $ANTREA_ROOT/build/yamls/antrea.yml .
+touch kustomization.yml
+$KUSTOMIZE edit add resource antrea.yml
 
 # do all ConfigMap edits
-mkdir configMap && cd configMap
+mkdir $TMP_DIR/configMap && cd $TMP_DIR/configMap
 
-# OpenShift operator implants the configurations so here just add placeholders
-echo "{{.AntreaAgentConfig | indent 4}}" > antrea-agent.conf
-echo "{{.AntreaControllerConfig | indent 4}}" > antrea-controller.conf
-echo "{{.AntreaCNIConfig | indent 4}}" > antrea-cni.conflist
-
-# unfortunately 'kustomize edit add configmap' does not support specifying 'merge' as the behavior,
-# which is why we use a template kustomization file.
-sed -e "s/<AGENT_CONF_FILE>/antrea-agent.conf/; s/<CONTROLLER_CONF_FILE>/antrea-controller.conf/; s/<CNI_CONFLIST_FILE>/antrea-cni.conflist/" $THIS_DIR/../build/yamls/patches/templates/kustomization.configMap.tpl.yml > kustomization.yml
+BASE=../base
+cp $THIS_DIR/../build/yamls/configMap/* .
 $KUSTOMIZE edit add base $BASE
-BASE=../configMap
-cd ..
 
+BASE=../configMap
+cd $TMP_DIR
 mkdir osmft && cd osmft
 cp $THIS_DIR/../build/yamls/patches/*.yml .
 touch kustomization.yml
@@ -107,15 +104,6 @@ $KUSTOMIZE edit add patch --path installCniConfDir.yml
 $KUSTOMIZE edit add patch --path installCniBinDir.yml
 $KUSTOMIZE edit add patch --path controllerOsRelease.yml
 $KUSTOMIZE edit add patch --path controllerImage.yml
-BASE=../osmft
-cd ..
-
-mkdir $MODE && cd $MODE
-touch kustomization.yml
-$KUSTOMIZE edit add base $BASE
-
-find ../../patches/$MODE -name \*.yml -exec cp {} . \;
-
 $KUSTOMIZE edit add patch --path agentImagePullPolicy.yml
 $KUSTOMIZE edit add patch --path controllerImagePullPolicy.yml
 
