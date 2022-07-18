@@ -158,5 +158,15 @@ packagemanifests: kustomize manifests
 	cd config/manager && $(KUSTOMIZE) edit set image antrea-operator=$(IMG)
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate packagemanifests -q --version $(VERSION) $(PKG_MAN_OPTS)
 
+test-tidy:
+	@echo
+	@echo "===> Checking go.mod tidiness <==="
+	./hack/tidy-check.sh
+
+.PHONY: tidy
+tidy:
+	rm -f go.sum
+	go mod tidy
+
 .PHONY: bin
 bin: manager
