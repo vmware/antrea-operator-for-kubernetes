@@ -63,8 +63,9 @@ var mockOperConfig = operatorv1.AntreaInstall{
 					"capabilities": {"portMappings": true}
 				}
 			]
-		}`,
-		AntreaControllerConfig: "apiPort: 10349",
+		}
+`,
+		AntreaControllerConfig: "apiPort: 10349\n",
 	},
 }
 
