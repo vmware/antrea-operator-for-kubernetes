@@ -3,9 +3,15 @@ layout: go.kubebuilder.io/v2
 projectName: antrea-operator-for-kubernetes
 repo: github.com/vmware/antrea-operator-for-kubernetes
 resources:
-- group: operator.antrea
+-
+  # TODO(user): Uncomment the below line if this resource implements a controller, else delete it.
+  # controller: true
+  domain: vmware.com
+  group: operator.antrea
   kind: AntreaInstall
+  # TODO(user): Update the package path for your API if the below value is incorrect.
+  path: github.com/vmware/antrea-operator-for-kubernetes/api/v1
   version: v1
-version: 3-alpha
+version: "3"
 plugins:
   go.sdk.operatorframework.io/v2-alpha: {}
