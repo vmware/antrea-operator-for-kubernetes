@@ -12,6 +12,10 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
+ifndef ANTREA_PLATFORM
+	ANTREA_PLATFORM=kubernetes
+endif
+
 include versioning.mk
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -79,7 +83,7 @@ deploy: manifests kustomize
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
-manifests: controller-gen kustomize
+manifests: controller-gen kustomize antrea-resources
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=antrea-operator webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	$(KUSTOMIZE) build config/crd > config/crd/operator.antrea.vmware.com_antreainstalls.yaml
 
@@ -128,13 +132,16 @@ endif
 .PHONY: bundle
 bundle: manifests kustomize
 	operator-sdk generate kustomize manifests -q
-	cd config/manager && $(KUSTOMIZE) edit set image antrea/antrea-operator:$(VERSION)
-	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite $(BUNDLE_METADATA_OPTS)
+	# OCP requires that an image will be identified by its digest hash
+	docker pull antrea/antrea-operator:v$(VERSION)
+	cd config/manager && $(KUSTOMIZE) edit set image $(shell docker inspect --format='{{index .RepoDigests 0}}' antrea/antrea-operator:v$(VERSION))
+	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite $(BUNDLE_METADATA_OPTS) --version $(VERSION)
 	operator-sdk bundle validate ./bundle
-	cp config/crd/operator.antrea.vmware.com_antreainstalls.yaml deploy/kubernetes/operator.antrea.vmware.com_antreainstalls_crd.yaml
-	cp config/crd/operator.antrea.vmware.com_antreainstalls.yaml deploy/openshift/operator.antrea.vmware.com_antreainstalls_crd.yaml
+	cp config/samples/operator_v1_antreainstall.yaml ./deploy/$(ANTREA_PLATFORM)/operator.antrea.vmware.com_v1_antreainstall_cr.yaml
+	cp config/crd/operator.antrea.vmware.com_antreainstalls.yaml deploy/$(ANTREA_PLATFORM)/operator.antrea.vmware.com_antreainstalls_crd.yaml
 
 .PHONY: ocpbundle
+ocpbundle: ANTREA_PLATFORM=openshift
 ocpbundle: bundle
 	./hack/edit_bundle_metadata_ocp.sh
 
@@ -144,13 +151,9 @@ bundle-build:
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 	docker tag ${BUNDLE_IMG} antrea/antrea-operator-bundle
 
-.PHONY: antrea-manifest
-antrea-manifest:
-	./hack/generate-manifest.sh > ./antrea-manifest/antrea.yml
-
-role-yamls:
-	./hack/generate-role-yaml.sh > ./deploy/kubernetes/role.yaml
-	./hack/generate-role-yaml.sh > ./deploy/openshift/role.yaml
+antrea-resources:
+	./hack/generate-antrea-resources.sh --platform $(ANTREA_PLATFORM)
+	cp ./config/rbac/role.yaml ./deploy/$(ANTREA_PLATFORM)/role.yaml
 
 # Generate package manifests.
 packagemanifests: kustomize manifests

@@ -3,5 +3,5 @@ resources:
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
-- name: antrea/antrea-operator
-  newTag: 1.7.0
+- digest: sha256:3897cc471c47b5fd38b862770cd54e1e676cc57c3af9c9329ef07f9a620bee58
+  name: antrea/antrea-operator

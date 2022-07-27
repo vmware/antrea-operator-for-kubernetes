@@ -82,6 +82,7 @@ spec:
   - email: projectantrea-maintainers@googlegroups.com
     name: Project Antrea Maintainers
   maturity: alpha
+  minKubeVersion: 1.20.0
   provider:
     name: antrea.io
   version: 0.0.0
