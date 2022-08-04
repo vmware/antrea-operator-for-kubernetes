@@ -128,7 +128,7 @@ endif
 .PHONY: bundle
 bundle: manifests kustomize
 	operator-sdk generate kustomize manifests -q
-	cd config/manager && $(KUSTOMIZE) edit set image antrea/antrea-operator=$(BUNDLE_IMG)
+	cd config/manager && $(KUSTOMIZE) edit set image antrea/antrea-operator:$(VERSION)
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle
 	cp config/crd/operator.antrea.vmware.com_antreainstalls.yaml deploy/kubernetes/operator.antrea.vmware.com_antreainstalls_crd.yaml
