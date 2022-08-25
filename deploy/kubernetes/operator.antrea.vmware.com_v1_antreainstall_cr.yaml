@@ -254,5 +254,6 @@ spec:
     \ CA certificate.\n  # If false, a Secret named \"antrea-ipsec-ca\" must be provided\
     \ with the following keys:\n  #   tls.crt: <CA certificate>\n  #   tls.key: <CA\
     \ private key>\n  selfSignedCA: true\n"
-  antreaImage: antrea/antrea-ubi:v1.7.1
+  antreaImage: antrea/antrea-ubuntu:v1.7.1
+  platform: kubernetes
 
