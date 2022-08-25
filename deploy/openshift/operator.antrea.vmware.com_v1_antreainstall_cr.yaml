@@ -255,4 +255,5 @@ spec:
     \ with the following keys:\n  #   tls.crt: <CA certificate>\n  #   tls.key: <CA\
     \ private key>\n  selfSignedCA: true\n"
   antreaImage: antrea/antrea-ubi:v1.7.1
+  platform: openshift
 
