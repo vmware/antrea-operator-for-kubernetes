@@ -2,10 +2,12 @@ BUNDLE_METADATA=${1:-./bundle/metadata/annotations.yaml}
 BUNDLE_DOCKERFILE=${2:-./bundle.Dockerfile}
 OCP_VER_ANN_KEY="com.redhat.openshift.versions"
 OCP_VER_LABEL_KEY="LABEL "${OCP_VER_ANN_KEY}
-OCP_VER_VALUE="v4.6,v4.7"
+OCP_VER_VALUE="v4.9-v4.10"
 OCP_DELIVERY_ANN_KEY="com.redhat.delivery.operator.bundle"
 OCP_DELIVERY_LABEL_KEY="LABEL "${OCP_DELIVERY_ANN_KEY}
 OCP_DELIVERY_VALUE="true"
+OCP_BUNDLE_CHANNEL_DEFAULT_LABEL_KEY="operators.operatorframework.io.bundle.channel.default.v1"
+OCP_BUNDLE_CHANNEL_DEFAULT_VALUE="alpha"
 
 if [[ ! -f ${BUNDLE_METADATA} ]]; then
     echo "Bundle metadata file "$BUNDLE_METADATA" does not exist"
@@ -49,7 +51,7 @@ function replace_or_append_label(){
 # append annotations to bundle metadata
 replace_or_append_ann "${OCP_VER_ANN_KEY}" "${OCP_VER_VALUE}" "${BUNDLE_METADATA}"
 replace_or_append_ann "${OCP_DELIVERY_ANN_KEY}" "${OCP_DELIVERY_VALUE}" "${BUNDLE_METADATA}"
+replace_or_append_ann "${OCP_BUNDLE_CHANNEL_DEFAULT_LABEL_KEY}" "${OCP_BUNDLE_CHANNEL_DEFAULT_VALUE}" "${BUNDLE_METADATA}"
 # append annotations to bundle dockerfile
 replace_or_append_label "${OCP_VER_LABEL_KEY}" "${OCP_VER_VALUE}" "${BUNDLE_DOCKERFILE}"
 replace_or_append_label "${OCP_DELIVERY_LABEL_KEY}" "${OCP_DELIVERY_VALUE}" "${BUNDLE_DOCKERFILE}"
-
