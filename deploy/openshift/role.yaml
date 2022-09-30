@@ -406,6 +406,33 @@ rules:
   resources:
   - externalippools/status
   verbs:
+  - patch
+  - update
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - externalnodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - groups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - groups/status
+  verbs:
   - update
 - apiGroups:
   - crd.antrea.io
@@ -420,6 +447,7 @@ rules:
   resources:
   - ippools/status
   verbs:
+  - patch
   - update
 - apiGroups:
   - crd.antrea.io

@@ -468,6 +468,16 @@ spec:
                         matchLabels:
                           x-kubernetes-preserve-unknown-fields: true
                       type: object
+                    service:
+                      properties:
+                        name:
+                          type: string
+                        namespace:
+                          type: string
+                      required:
+                      - name
+                      - namespace
+                      type: object
                     serviceAccount:
                       properties:
                         name:
@@ -792,6 +802,16 @@ spec:
                               matchLabels:
                                 x-kubernetes-preserve-unknown-fields: true
                             type: object
+                          service:
+                            properties:
+                              name:
+                                type: string
+                              namespace:
+                                type: string
+                            required:
+                            - name
+                            - namespace
+                            type: object
                           serviceAccount:
                             properties:
                               name:
@@ -974,6 +994,21 @@ spec:
             type: object
           status:
             properties:
+              conditions:
+                items:
+                  properties:
+                    lastTransitionTime:
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      type: string
+                    type:
+                      type: string
+                  type: object
+                type: array
               currentNodesRealized:
                 type: integer
               desiredNodesRealized:
@@ -1273,6 +1308,185 @@ kind: CustomResourceDefinition
 metadata:
   labels:
     app: antrea
+  name: externalnodes.crd.antrea.io
+spec:
+  group: crd.antrea.io
+  names:
+    kind: ExternalNode
+    plural: externalnodes
+    shortNames:
+    - en
+    singular: externalnode
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            properties:
+              interfaces:
+                items:
+                  properties:
+                    ips:
+                      items:
+                        oneOf:
+                        - format: ipv4
+                        - format: ipv6
+                        type: string
+                      minItems: 1
+                      type: array
+                    name:
+                      type: string
+                  type: object
+                maxItems: 1
+                minItems: 1
+                required:
+                - ips
+                type: array
+            required:
+            - interfaces
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: groups.crd.antrea.io
+spec:
+  group: crd.antrea.io
+  names:
+    kind: Group
+    plural: groups
+    shortNames:
+    - grp
+    singular: group
+  scope: Namespaced
+  versions:
+  - name: v1alpha3
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            properties:
+              childGroups:
+                items:
+                  type: string
+                type: array
+              externalEntitySelector:
+                properties:
+                  matchExpressions:
+                    items:
+                      properties:
+                        key:
+                          type: string
+                        operator:
+                          enum:
+                          - In
+                          - NotIn
+                          - Exists
+                          - DoesNotExist
+                          type: string
+                        values:
+                          items:
+                            type: string
+                          type: array
+                      type: object
+                    type: array
+                  matchLabels:
+                    x-kubernetes-preserve-unknown-fields: true
+                type: object
+              ipBlocks:
+                items:
+                  properties:
+                    cidr:
+                      format: cidr
+                      type: string
+                  type: object
+                type: array
+              namespaceSelector:
+                properties:
+                  matchExpressions:
+                    items:
+                      properties:
+                        key:
+                          type: string
+                        operator:
+                          enum:
+                          - In
+                          - NotIn
+                          - Exists
+                          - DoesNotExist
+                          type: string
+                        values:
+                          items:
+                            type: string
+                          type: array
+                      type: object
+                    type: array
+                  matchLabels:
+                    x-kubernetes-preserve-unknown-fields: true
+                type: object
+              podSelector:
+                properties:
+                  matchExpressions:
+                    items:
+                      properties:
+                        key:
+                          type: string
+                        operator:
+                          enum:
+                          - In
+                          - NotIn
+                          - Exists
+                          - DoesNotExist
+                          type: string
+                        values:
+                          items:
+                            type: string
+                          type: array
+                      type: object
+                    type: array
+                  matchLabels:
+                    x-kubernetes-preserve-unknown-fields: true
+                type: object
+              serviceReference:
+                properties:
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                type: object
+            type: object
+          status:
+            properties:
+              conditions:
+                items:
+                  properties:
+                    lastTransitionTime:
+                      type: string
+                    status:
+                      type: string
+                    type:
+                      type: string
+                  type: object
+                type: array
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    app: antrea
   name: ippools.crd.antrea.io
 spec:
   group: crd.antrea.io
@@ -1284,7 +1498,19 @@ spec:
     singular: ippool
   scope: Cluster
   versions:
-  - name: v1alpha2
+  - additionalPrinterColumns:
+    - description: The number of total IPs
+      jsonPath: .status.usage.total
+      name: Total
+      type: integer
+    - description: The number of allocated IPs
+      jsonPath: .status.usage.used
+      name: Used
+      type: integer
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha2
     schema:
       openAPIV3Schema:
         properties:
@@ -1317,6 +1543,8 @@ spec:
                       - format: ipv6
                       type: string
                     prefixLength:
+                      maximum: 128
+                      minimum: 1
                       type: integer
                     start:
                       oneOf:
@@ -1330,6 +1558,9 @@ spec:
                   type: object
                 type: array
               ipVersion:
+                enum:
+                - 4
+                - 6
                 type: integer
             required:
             - ipVersion
@@ -1369,6 +1600,13 @@ spec:
                       type: string
                   type: object
                 type: array
+              usage:
+                properties:
+                  total:
+                    type: integer
+                  used:
+                    type: integer
+                type: object
             type: object
         required:
         - spec
@@ -1426,6 +1664,32 @@ spec:
               appliedTo:
                 items:
                   properties:
+                    externalEntitySelector:
+                      properties:
+                        matchExpressions:
+                          items:
+                            properties:
+                              key:
+                                type: string
+                              operator:
+                                enum:
+                                - In
+                                - NotIn
+                                - Exists
+                                - DoesNotExist
+                                type: string
+                              values:
+                                items:
+                                  pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
+                                  type: string
+                                type: array
+                            type: object
+                          type: array
+                        matchLabels:
+                          x-kubernetes-preserve-unknown-fields: true
+                      type: object
+                    group:
+                      type: string
                     podSelector:
                       properties:
                         matchExpressions:
@@ -1465,6 +1729,8 @@ spec:
                     appliedTo:
                       items:
                         properties:
+                          group:
+                            type: string
                           podSelector:
                             properties:
                               matchExpressions:
@@ -1574,6 +1840,8 @@ spec:
                             type: object
                           fqdn:
                             type: string
+                          group:
+                            type: string
                           ipBlock:
                             properties:
                               cidr:
@@ -1682,6 +1950,8 @@ spec:
                     appliedTo:
                       items:
                         properties:
+                          group:
+                            type: string
                           podSelector:
                             properties:
                               matchExpressions:
@@ -1737,6 +2007,8 @@ spec:
                               matchLabels:
                                 x-kubernetes-preserve-unknown-fields: true
                             type: object
+                          group:
+                            type: string
                           ipBlock:
                             properties:
                               cidr:
@@ -1883,6 +2155,21 @@ spec:
             type: object
           status:
             properties:
+              conditions:
+                items:
+                  properties:
+                    lastTransitionTime:
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      type: string
+                    type:
+                      type: string
+                  type: object
+                type: array
               currentNodesRealized:
                 type: integer
               desiredNodesRealized:
@@ -2749,9 +3036,7 @@ rules:
   - antreaagentinfos
   verbs:
   - get
-  - create
   - update
-  - delete
 - apiGroups:
   - controlplane.antrea.io
   resources:
@@ -3080,6 +3365,7 @@ rules:
   - antreaagentinfos
   verbs:
   - list
+  - create
   - delete
 - apiGroups:
   - crd.antrea.io
@@ -3131,6 +3417,7 @@ rules:
   resources:
   - externalentities
   - clustergroups
+  - groups
   verbs:
   - get
   - watch
@@ -3143,6 +3430,7 @@ rules:
   - crd.antrea.io
   resources:
   - clustergroups/status
+  - groups/status
   verbs:
   - update
 - apiGroups:
@@ -3171,6 +3459,15 @@ rules:
   - ippools/status
   verbs:
   - update
+  - patch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - externalnodes
+  verbs:
+  - get
+  - watch
+  - list
 - apiGroups:
   - apps
   resources:
@@ -3295,7 +3592,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 750097fa4ed60fda68fedf2f31b06a1a62dbbe5dc9a38e9c1f9ddc861a389401
+        checksum/config: b7ddaa189bfec76b90f129f3fd8d1482edcfaf8c42772956d6e4aa5134e3c3cb
       labels:
         app: antrea
         component: antrea-controller
@@ -3456,7 +3753,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 750097fa4ed60fda68fedf2f31b06a1a62dbbe5dc9a38e9c1f9ddc861a389401
+        checksum/config: b7ddaa189bfec76b90f129f3fd8d1482edcfaf8c42772956d6e4aa5134e3c3cb
         kubectl.kubernetes.io/default-container: antrea-agent
       labels:
         app: antrea
@@ -3800,6 +4097,28 @@ webhooks:
     resources:
     - clustergroups
     scope: Cluster
+  sideEffects: None
+  timeoutSeconds: 5
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: antrea
+      namespace: kube-system
+      path: /validate/group
+  name: groupvalidator.antrea.io
+  rules:
+  - apiGroups:
+    - crd.antrea.io
+    apiVersions:
+    - v1alpha3
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - groups
+    scope: Namespaced
   sideEffects: None
   timeoutSeconds: 5
 - admissionReviewVersions:
