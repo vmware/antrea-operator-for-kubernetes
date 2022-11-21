@@ -17,7 +17,7 @@ ifndef ANTREA_PLATFORM
 endif
 
 ifndef IS_CERTIFICATION
-	IS_CERTIFICATION=no
+	IS_CERTIFICATION=false
 endif
 
 include versioning.mk
@@ -137,7 +137,7 @@ endif
 bundle: manifests kustomize
 	operator-sdk generate kustomize manifests -q
 	# OCP requires that an image will be identified by its digest hash
-	if [ "$(IS_CERTIFICATION)" == "yes" ]; then \
+	if [ "$(IS_CERTIFICATION)" == "true" ]; then \
 		docker pull antrea/antrea-operator:v$(VERSION) ;\
 		cd config/manager && $(KUSTOMIZE) edit set image $(shell docker inspect --format='{{index .RepoDigests 0}}' antrea/antrea-operator:v$(VERSION)) ;\
 	else \
@@ -153,7 +153,7 @@ ocpbundle: ANTREA_PLATFORM=openshift
 ocpbundle: bundle
 	./hack/edit_bundle_metadata_ocp.sh
 
-ocpcertification: IS_CERTIFICATION=yes
+ocpcertification: IS_CERTIFICATION=true
 ocpcertification: ocpbundle
 
 # Build the bundle image.
