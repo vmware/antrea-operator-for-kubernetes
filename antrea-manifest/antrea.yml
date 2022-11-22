@@ -2188,6 +2188,155 @@ spec:
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  name: supportbundlecollections.crd.antrea.io
+spec:
+  group: crd.antrea.io
+  names:
+    kind: SupportBundleCollection
+    plural: supportbundlecollections
+    shortNames:
+    - sbc
+    singular: supportbundlecollection
+  scope: Cluster
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            anyOf:
+            - required:
+              - nodes
+            - required:
+              - externalNodes
+            properties:
+              authentication:
+                properties:
+                  authSecret:
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    type: object
+                  authType:
+                    enum:
+                    - BearerToken
+                    - APIKey
+                    type: string
+                type: object
+              expirationMinutes:
+                default: 60
+                type: integer
+              externalNodes:
+                properties:
+                  namespace:
+                    type: string
+                  nodeNames:
+                    items:
+                      type: string
+                    type: array
+                  nodeSelector:
+                    properties:
+                      matchExpressions:
+                        items:
+                          properties:
+                            key:
+                              type: string
+                            operator:
+                              enum:
+                              - In
+                              - NotIn
+                              - Exists
+                              - DoesNotExist
+                              type: string
+                            values:
+                              items:
+                                pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
+                                type: string
+                              type: array
+                          type: object
+                        type: array
+                      matchLabels:
+                        x-kubernetes-preserve-unknown-fields: true
+                    type: object
+                required:
+                - namespace
+                type: object
+              fileServer:
+                properties:
+                  url:
+                    type: string
+                type: object
+              nodes:
+                properties:
+                  nodeNames:
+                    items:
+                      type: string
+                    type: array
+                  nodeSelector:
+                    properties:
+                      matchExpressions:
+                        items:
+                          properties:
+                            key:
+                              type: string
+                            operator:
+                              enum:
+                              - In
+                              - NotIn
+                              - Exists
+                              - DoesNotExist
+                              type: string
+                            values:
+                              items:
+                                pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
+                                type: string
+                              type: array
+                          type: object
+                        type: array
+                      matchLabels:
+                        x-kubernetes-preserve-unknown-fields: true
+                    type: object
+                type: object
+              sinceTime:
+                format: duration
+                type: string
+            required:
+            - fileServer
+            - authentication
+            type: object
+          status:
+            properties:
+              collectedNodes:
+                type: integer
+              conditions:
+                items:
+                  properties:
+                    lastTransitionTime:
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      type: string
+                    type:
+                      type: string
+                  type: object
+                type: array
+              desiredNodes:
+                type: integer
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
   labels:
     app: antrea
   name: tiers.crd.antrea.io
@@ -3592,7 +3741,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: b7ddaa189bfec76b90f129f3fd8d1482edcfaf8c42772956d6e4aa5134e3c3cb
+        checksum/config: b609bc3b220de28b3fe935093fc7d99dfdc533916597e906a6c627c6233fedbc
       labels:
         app: antrea
         component: antrea-controller
@@ -3753,7 +3902,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: b7ddaa189bfec76b90f129f3fd8d1482edcfaf8c42772956d6e4aa5134e3c3cb
+        checksum/config: b609bc3b220de28b3fe935093fc7d99dfdc533916597e906a6c627c6233fedbc
         kubectl.kubernetes.io/default-container: antrea-agent
       labels:
         app: antrea
@@ -3785,13 +3934,13 @@ spec:
         image: {{.AntreaImage}}
         imagePullPolicy: IfNotPresent
         livenessProbe:
-          exec:
-            command:
-            - /bin/sh
-            - -c
-            - container_liveness_probe agent
           failureThreshold: 5
-          initialDelaySeconds: 5
+          httpGet:
+            host: localhost
+            path: /livez
+            port: api
+            scheme: HTTPS
+          initialDelaySeconds: 10
           periodSeconds: 10
           timeoutSeconds: 5
         name: antrea-agent
