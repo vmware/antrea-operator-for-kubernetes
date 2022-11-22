@@ -42,36 +42,42 @@ spec:
     # Enable certificated-based authentication for IPsec.\n#  IPsecCertAuth: false\n\
     \n# Name of the OpenVSwitch bridge antrea-agent will create and use.\n# Make sure\
     \ it doesn't conflict with your existing OpenVSwitch bridges.\novsBridge: \"br-int\"\
-    \n\n# Datapath type to use for the OpenVSwitch bridge created by Antrea. Supported\
-    \ values are:\n# - system\n# - netdev\n# 'system' is the default value and corresponds\
-    \ to the kernel datapath. Use 'netdev' to run\n# OVS in userspace mode. Userspace\
-    \ mode requires the tun device driver to be available.\n#ovsDatapathType: system\n\
-    \n# Name of the interface antrea-agent will create and use for host <--> pod communication.\n\
-    # Make sure it doesn't conflict with your existing interfaces.\nhostGateway: \"\
-    antrea-gw0\"\n\n# Determines how traffic is encapsulated. It has the following\
-    \ options:\n# encap(default):    Inter-node Pod traffic is always encapsulated\
-    \ and Pod to external network\n#                    traffic is SNAT'd.\n# noEncap:\
-    \           Inter-node Pod traffic is not encapsulated; Pod to external network\
-    \ traffic is\n#                    SNAT'd if noSNAT is not set to true. Underlying\
-    \ network must be capable of\n#                    supporting Pod traffic across\
-    \ IP subnets.\n# hybrid:            noEncap if source and destination Nodes are\
-    \ on the same subnet, otherwise encap.\n# networkPolicyOnly: Antrea enforces NetworkPolicy\
-    \ only, and utilizes CNI chaining and delegates Pod\n#                    IPAM\
-    \ and connectivity to the primary CNI.\n#\ntrafficEncapMode: \"encap\"\n\n# Whether\
-    \ or not to SNAT (using the Node IP) the egress traffic from a Pod to the external\
-    \ network.\n# This option is for the noEncap traffic mode only, and the default\
-    \ value is false. In the noEncap\n# mode, if the cluster's Pod CIDR is reachable\
-    \ from the external network, then the Pod traffic to\n# the external network needs\
-    \ not be SNAT'd. In the networkPolicyOnly mode, antrea-agent never\n# performs\
-    \ SNAT and this option will be ignored; for other modes it must be set to false.\n\
-    noSNAT: false\n\n# Tunnel protocols used for encapsulating traffic across Nodes.\
-    \ If WireGuard is enabled in trafficEncryptionMode,\n# this option will not take\
-    \ effect. Supported values:\n# - geneve (default)\n# - vxlan\n# - gre\n# - stt\n\
-    # Note that \"gre\" is not supported for IPv6 clusters (IPv6-only or dual-stack\
-    \ clusters).\ntunnelType: \"geneve\"\n\n# TunnelPort is the destination port for\
-    \ UDP and TCP based tunnel protocols (Geneve, VXLAN, and STT).\n# If zero, it\
-    \ will use the assigned IANA port for the protocol, i.e. 6081 for Geneve, 4789\
-    \ for VXLAN,\n# and 7471 for STT.\ntunnelPort: 0\n\n# Determines how tunnel traffic\
+    \n\n# Datapath type to use for the OpenVSwitch bridge created by Antrea. At the\
+    \ moment, the only\n# supported value is 'system', which corresponds to the kernel\
+    \ datapath.\n#ovsDatapathType: system\n\n# Name of the interface antrea-agent\
+    \ will create and use for host <--> pod communication.\n# Make sure it doesn't\
+    \ conflict with your existing interfaces.\nhostGateway: \"antrea-gw0\"\n\n# Determines\
+    \ how traffic is encapsulated. It has the following options:\n# encap(default):\
+    \    Inter-node Pod traffic is always encapsulated and Pod to external network\n\
+    #                    traffic is SNAT'd.\n# noEncap:           Inter-node Pod traffic\
+    \ is not encapsulated; Pod to external network traffic is\n#                 \
+    \   SNAT'd if noSNAT is not set to true. Underlying network must be capable of\n\
+    #                    supporting Pod traffic across IP subnets.\n# hybrid:    \
+    \        noEncap if source and destination Nodes are on the same subnet, otherwise\
+    \ encap.\n# networkPolicyOnly: Antrea enforces NetworkPolicy only, and utilizes\
+    \ CNI chaining and delegates Pod\n#                    IPAM and connectivity to\
+    \ the primary CNI.\n#\ntrafficEncapMode: \"encap\"\n\n# Whether or not to SNAT\
+    \ (using the Node IP) the egress traffic from a Pod to the external network.\n\
+    # This option is for the noEncap traffic mode only, and the default value is false.\
+    \ In the noEncap\n# mode, if the cluster's Pod CIDR is reachable from the external\
+    \ network, then the Pod traffic to\n# the external network needs not be SNAT'd.\
+    \ In the networkPolicyOnly mode, antrea-agent never\n# performs SNAT and this\
+    \ option will be ignored; for other modes it must be set to false.\nnoSNAT: false\n\
+    \n# Tunnel protocols used for encapsulating traffic across Nodes. If WireGuard\
+    \ is enabled in trafficEncryptionMode,\n# this option will not take effect. Supported\
+    \ values:\n# - geneve (default)\n# - vxlan\n# - gre\n# - stt\n# Note that \"gre\"\
+    \ is not supported for IPv6 clusters (IPv6-only or dual-stack clusters).\ntunnelType:\
+    \ \"geneve\"\n\n# TunnelPort is the destination port for UDP and TCP based tunnel\
+    \ protocols (Geneve, VXLAN, and STT).\n# If zero, it will use the assigned IANA\
+    \ port for the protocol, i.e. 6081 for Geneve, 4789 for VXLAN,\n# and 7471 for\
+    \ STT.\ntunnelPort: 0\n\n# TunnelCsum determines whether to compute UDP encapsulation\
+    \ header (Geneve or VXLAN) checksums on outgoing\n# packets. For Linux kernel\
+    \ before Mar 2021, UDP checksum must be present to trigger GRO on the receiver\
+    \ for better\n# performance of Geneve and VXLAN tunnels. The issue has been fixed\
+    \ by\n# https://github.com/torvalds/linux/commit/89e5c58fc1e2857ccdaae506fb8bc5fed57ee063,\
+    \ thus computing UDP checksum is\n# no longer necessary.\n# It should only be\
+    \ set to true when you are using an unpatched Linux kernel and observing poor\
+    \ transfer performance.\ntunnelCsum: false\n\n# Determines how tunnel traffic\
     \ is encrypted. Currently encryption only works with encap mode.\n# It has the\
     \ following options:\n# - none (default):  Inter-node Pod traffic will not be\
     \ encrypted.\n# - ipsec:           Enable IPsec (ESP) encryption for Pod traffic\
@@ -264,6 +270,6 @@ spec:
     \ CA certificate.\n  # If false, a Secret named \"antrea-ipsec-ca\" must be provided\
     \ with the following keys:\n  #   tls.crt: <CA certificate>\n  #   tls.key: <CA\
     \ private key>\n  selfSignedCA: true\n"
-  antreaImage: antrea/antrea-ubuntu:v1.8.0
+  antreaImage: antrea/antrea-ubuntu:v1.9.0
   antreaPlatform: kubernetes
 
