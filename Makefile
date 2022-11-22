@@ -16,6 +16,10 @@ ifndef ANTREA_PLATFORM
 	ANTREA_PLATFORM=kubernetes
 endif
 
+ifndef IS_CERTIFICATION
+	IS_CERTIFICATION=false
+endif
+
 include versioning.mk
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -133,8 +137,12 @@ endif
 bundle: manifests kustomize
 	operator-sdk generate kustomize manifests -q
 	# OCP requires that an image will be identified by its digest hash
-	docker pull antrea/antrea-operator:v$(VERSION)
-	cd config/manager && $(KUSTOMIZE) edit set image $(shell docker inspect --format='{{index .RepoDigests 0}}' antrea/antrea-operator:v$(VERSION))
+	if [ "$(IS_CERTIFICATION)" == "true" ]; then \
+		docker pull antrea/antrea-operator:v$(VERSION) ;\
+		cd config/manager && $(KUSTOMIZE) edit set image $(shell docker inspect --format='{{index .RepoDigests 0}}' antrea/antrea-operator:v$(VERSION)) ;\
+	else \
+		cd config/manager && $(KUSTOMIZE) edit set image antrea/antrea-operator:v$(VERSION) ;\
+	fi
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite $(BUNDLE_METADATA_OPTS) --version $(VERSION)
 	operator-sdk bundle validate ./bundle
 	cp config/samples/operator_v1_antreainstall.yaml ./deploy/$(ANTREA_PLATFORM)/operator.antrea.vmware.com_v1_antreainstall_cr.yaml
@@ -144,6 +152,9 @@ bundle: manifests kustomize
 ocpbundle: ANTREA_PLATFORM=openshift
 ocpbundle: bundle
 	./hack/edit_bundle_metadata_ocp.sh
+
+ocpcertification: IS_CERTIFICATION=true
+ocpcertification: ocpbundle
 
 # Build the bundle image.
 .PHONY: bundle-build
