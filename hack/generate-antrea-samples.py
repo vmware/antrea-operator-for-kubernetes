@@ -3,6 +3,15 @@
 import argparse
 import yaml
 
+
+def str_presenter(dumper, data):
+    if len(data.splitlines()) > 1:  # check for multiline string
+        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
+    return dumper.represent_scalar('tag:yaml.org,2002:str', data)
+
+
+yaml.add_representer(str, str_presenter)
+
 parser = argparse.ArgumentParser(description='Gather resources from Antrea repository')
 parser.add_argument('yaml_files', metavar='file', type=argparse.FileType('r'), nargs='+',
                     help='List of yaml files for processing')
