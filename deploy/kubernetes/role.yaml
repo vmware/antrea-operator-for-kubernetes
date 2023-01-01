@@ -270,6 +270,20 @@ rules:
   verbs:
   - create
 - apiGroups:
+  - controlplane.antrea.io
+  resources:
+  - supportbundlecollections
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - controlplane.antrea.io
+  resources:
+  - supportbundlecollections/status
+  verbs:
+  - create
+- apiGroups:
   - crd.antrea.io
   resources:
   - antreaagentinfos
@@ -430,6 +444,20 @@ rules:
 - apiGroups:
   - crd.antrea.io
   resources:
+  - supportbundlecollections
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - supportbundlecollections/status
+  verbs:
+  - update
+- apiGroups:
+  - crd.antrea.io
+  resources:
   - tiers
   verbs:
   - create
@@ -499,6 +527,14 @@ rules:
   - multicluster.crd.antrea.io
   resources:
   - gateways
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - multicluster.crd.antrea.io
+  resources:
+  - labelidentities
   verbs:
   - get
   - list

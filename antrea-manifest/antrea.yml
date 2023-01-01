@@ -567,6 +567,33 @@ spec:
                       type: array
                     enableLogging:
                       type: boolean
+                    l7Protocols:
+                      items:
+                        oneOf:
+                        - required:
+                          - http
+                        properties:
+                          http:
+                            properties:
+                              host:
+                                type: string
+                              method:
+                                enum:
+                                - GET
+                                - POST
+                                - PUT
+                                - HEAD
+                                - DELETE
+                                - TRACE
+                                - OPTIONS
+                                - CONNECT
+                                - PATCH
+                                type: string
+                              path:
+                                type: string
+                            type: object
+                        type: object
+                      type: array
                     name:
                       type: string
                     ports:
@@ -729,6 +756,8 @@ spec:
                           name:
                             type: string
                           namespace:
+                            type: string
+                          scope:
                             type: string
                         required:
                         - name
@@ -916,6 +945,11 @@ spec:
                               matchLabels:
                                 x-kubernetes-preserve-unknown-fields: true
                             type: object
+                          scope:
+                            enum:
+                            - Cluster
+                            - ClusterSet
+                            type: string
                           serviceAccount:
                             properties:
                               name:
@@ -925,6 +959,33 @@ spec:
                             required:
                             - name
                             - namespace
+                            type: object
+                        type: object
+                      type: array
+                    l7Protocols:
+                      items:
+                        oneOf:
+                        - required:
+                          - http
+                        properties:
+                          http:
+                            properties:
+                              host:
+                                type: string
+                              method:
+                                enum:
+                                - GET
+                                - POST
+                                - PUT
+                                - HEAD
+                                - DELETE
+                                - TRACE
+                                - OPTIONS
+                                - CONNECT
+                                - PATCH
+                                type: string
+                              path:
+                                type: string
                             type: object
                         type: object
                       type: array
@@ -1759,6 +1820,33 @@ spec:
                       type: array
                     enableLogging:
                       type: boolean
+                    l7Protocols:
+                      items:
+                        oneOf:
+                        - required:
+                          - http
+                        properties:
+                          http:
+                            properties:
+                              host:
+                                type: string
+                              method:
+                                enum:
+                                - GET
+                                - POST
+                                - PUT
+                                - HEAD
+                                - DELETE
+                                - TRACE
+                                - OPTIONS
+                                - CONNECT
+                                - PATCH
+                                type: string
+                              path:
+                                type: string
+                            type: object
+                        type: object
+                      type: array
                     name:
                       type: string
                     ports:
@@ -1929,6 +2017,8 @@ spec:
                             type: string
                           namespace:
                             type: string
+                          scope:
+                            type: string
                         required:
                         - name
                         type: object
@@ -2087,6 +2177,38 @@ spec:
                               matchLabels:
                                 x-kubernetes-preserve-unknown-fields: true
                             type: object
+                          scope:
+                            enum:
+                            - Cluster
+                            - ClusterSet
+                            type: string
+                        type: object
+                      type: array
+                    l7Protocols:
+                      items:
+                        oneOf:
+                        - required:
+                          - http
+                        properties:
+                          http:
+                            properties:
+                              host:
+                                type: string
+                              method:
+                                enum:
+                                - GET
+                                - POST
+                                - PUT
+                                - HEAD
+                                - DELETE
+                                - TRACE
+                                - OPTIONS
+                                - CONNECT
+                                - PATCH
+                                type: string
+                              path:
+                                type: string
+                            type: object
                         type: object
                       type: array
                     name:
@@ -2223,6 +2345,7 @@ spec:
                     enum:
                     - BearerToken
                     - APIKey
+                    - BasicAuthentication
                     type: string
                 type: object
               expirationMinutes:
@@ -2597,6 +2720,10 @@ spec:
                           componentInfo:
                             type: string
                           dstMAC:
+                            type: string
+                          egress:
+                            type: string
+                          egressIP:
                             type: string
                           networkPolicy:
                             type: string
@@ -3218,6 +3345,20 @@ rules:
   - create
   - get
 - apiGroups:
+  - controlplane.antrea.io
+  resources:
+  - supportbundlecollections
+  verbs:
+  - get
+  - watch
+  - list
+- apiGroups:
+  - controlplane.antrea.io
+  resources:
+  - supportbundlecollections/status
+  verbs:
+  - create
+- apiGroups:
   - authentication.k8s.io
   resources:
   - tokenreviews
@@ -3321,6 +3462,7 @@ rules:
   - multicluster.crd.antrea.io
   resources:
   - clusterinfoimports
+  - labelidentities
   verbs:
   - get
   - list
@@ -3625,6 +3767,28 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - supportbundlecollections
+  verbs:
+  - get
+  - watch
+  - list
+- apiGroups:
+  - crd.antrea.io
+  resources:
+  - supportbundlecollections/status
+  verbs:
+  - update
+- apiGroups:
+  - multicluster.crd.antrea.io
+  resources:
+  - labelidentities
+  verbs:
+  - get
+  - list
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -3741,7 +3905,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: b609bc3b220de28b3fe935093fc7d99dfdc533916597e906a6c627c6233fedbc
+        checksum/config: dc23e723afc8c100dc8bdc6b2f8a2774baf7dcf7a8eb0a34e168057d75b9f245
       labels:
         app: antrea
         component: antrea-controller
@@ -3902,7 +4066,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: b609bc3b220de28b3fe935093fc7d99dfdc533916597e906a6c627c6233fedbc
+        checksum/config: dc23e723afc8c100dc8bdc6b2f8a2774baf7dcf7a8eb0a34e168057d75b9f245
         kubectl.kubernetes.io/default-container: antrea-agent
       labels:
         app: antrea
@@ -4333,6 +4497,28 @@ webhooks:
     - DELETE
     resources:
     - ippools
+    scope: Cluster
+  sideEffects: None
+  timeoutSeconds: 5
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: antrea
+      namespace: kube-system
+      path: /validate/supportbundlecollection
+  name: supportbundlecollectionvalidator.antrea.io
+  rules:
+  - apiGroups:
+    - crd.antrea.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - UPDATE
+    - DELETE
+    resources:
+    - supportbundlecollections
     scope: Cluster
   sideEffects: None
   timeoutSeconds: 5
