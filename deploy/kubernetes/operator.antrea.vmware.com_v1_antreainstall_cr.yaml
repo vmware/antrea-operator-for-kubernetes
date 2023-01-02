@@ -40,41 +40,44 @@ spec:
     \ of LoadBalancer type.\n#  ServiceExternalIP: false\n\n# Enable mirroring or\
     \ redirecting the traffic Pods send or receive.\n#  TrafficControl: false\n\n\
     # Enable certificated-based authentication for IPsec.\n#  IPsecCertAuth: false\n\
-    \n# Name of the OpenVSwitch bridge antrea-agent will create and use.\n# Make sure\
-    \ it doesn't conflict with your existing OpenVSwitch bridges.\novsBridge: \"br-int\"\
-    \n\n# Datapath type to use for the OpenVSwitch bridge created by Antrea. At the\
-    \ moment, the only\n# supported value is 'system', which corresponds to the kernel\
-    \ datapath.\n#ovsDatapathType: system\n\n# Name of the interface antrea-agent\
-    \ will create and use for host <--> pod communication.\n# Make sure it doesn't\
-    \ conflict with your existing interfaces.\nhostGateway: \"antrea-gw0\"\n\n# Determines\
-    \ how traffic is encapsulated. It has the following options:\n# encap(default):\
-    \    Inter-node Pod traffic is always encapsulated and Pod to external network\n\
-    #                    traffic is SNAT'd.\n# noEncap:           Inter-node Pod traffic\
-    \ is not encapsulated; Pod to external network traffic is\n#                 \
-    \   SNAT'd if noSNAT is not set to true. Underlying network must be capable of\n\
-    #                    supporting Pod traffic across IP subnets.\n# hybrid:    \
-    \        noEncap if source and destination Nodes are on the same subnet, otherwise\
-    \ encap.\n# networkPolicyOnly: Antrea enforces NetworkPolicy only, and utilizes\
-    \ CNI chaining and delegates Pod\n#                    IPAM and connectivity to\
-    \ the primary CNI.\n#\ntrafficEncapMode: \"encap\"\n\n# Whether or not to SNAT\
-    \ (using the Node IP) the egress traffic from a Pod to the external network.\n\
-    # This option is for the noEncap traffic mode only, and the default value is false.\
-    \ In the noEncap\n# mode, if the cluster's Pod CIDR is reachable from the external\
-    \ network, then the Pod traffic to\n# the external network needs not be SNAT'd.\
-    \ In the networkPolicyOnly mode, antrea-agent never\n# performs SNAT and this\
-    \ option will be ignored; for other modes it must be set to false.\nnoSNAT: false\n\
-    \n# Tunnel protocols used for encapsulating traffic across Nodes. If WireGuard\
-    \ is enabled in trafficEncryptionMode,\n# this option will not take effect. Supported\
-    \ values:\n# - geneve (default)\n# - vxlan\n# - gre\n# - stt\n# Note that \"gre\"\
-    \ is not supported for IPv6 clusters (IPv6-only or dual-stack clusters).\ntunnelType:\
-    \ \"geneve\"\n\n# TunnelPort is the destination port for UDP and TCP based tunnel\
-    \ protocols (Geneve, VXLAN, and STT).\n# If zero, it will use the assigned IANA\
-    \ port for the protocol, i.e. 6081 for Geneve, 4789 for VXLAN,\n# and 7471 for\
-    \ STT.\ntunnelPort: 0\n\n# TunnelCsum determines whether to compute UDP encapsulation\
-    \ header (Geneve or VXLAN) checksums on outgoing\n# packets. For Linux kernel\
-    \ before Mar 2021, UDP checksum must be present to trigger GRO on the receiver\
-    \ for better\n# performance of Geneve and VXLAN tunnels. The issue has been fixed\
-    \ by\n# https://github.com/torvalds/linux/commit/89e5c58fc1e2857ccdaae506fb8bc5fed57ee063,\
+    \n# Enable collecting support bundle files with SupportBundleCollection CRD.\n\
+    #  SupportBundleCollection: false\n\n# Enable users to protect their applications\
+    \ by specifying how they are allowed to communicate with others, taking\n# into\
+    \ account application context.\n#  L7NetworkPolicy: false\n\n# Name of the OpenVSwitch\
+    \ bridge antrea-agent will create and use.\n# Make sure it doesn't conflict with\
+    \ your existing OpenVSwitch bridges.\novsBridge: \"br-int\"\n\n# Datapath type\
+    \ to use for the OpenVSwitch bridge created by Antrea. At the moment, the only\n\
+    # supported value is 'system', which corresponds to the kernel datapath.\n#ovsDatapathType:\
+    \ system\n\n# Name of the interface antrea-agent will create and use for host\
+    \ <--> pod communication.\n# Make sure it doesn't conflict with your existing\
+    \ interfaces.\nhostGateway: \"antrea-gw0\"\n\n# Determines how traffic is encapsulated.\
+    \ It has the following options:\n# encap(default):    Inter-node Pod traffic is\
+    \ always encapsulated and Pod to external network\n#                    traffic\
+    \ is SNAT'd.\n# noEncap:           Inter-node Pod traffic is not encapsulated;\
+    \ Pod to external network traffic is\n#                    SNAT'd if noSNAT is\
+    \ not set to true. Underlying network must be capable of\n#                  \
+    \  supporting Pod traffic across IP subnets.\n# hybrid:            noEncap if\
+    \ source and destination Nodes are on the same subnet, otherwise encap.\n# networkPolicyOnly:\
+    \ Antrea enforces NetworkPolicy only, and utilizes CNI chaining and delegates\
+    \ Pod\n#                    IPAM and connectivity to the primary CNI.\n#\ntrafficEncapMode:\
+    \ \"encap\"\n\n# Whether or not to SNAT (using the Node IP) the egress traffic\
+    \ from a Pod to the external network.\n# This option is for the noEncap traffic\
+    \ mode only, and the default value is false. In the noEncap\n# mode, if the cluster's\
+    \ Pod CIDR is reachable from the external network, then the Pod traffic to\n#\
+    \ the external network needs not be SNAT'd. In the networkPolicyOnly mode, antrea-agent\
+    \ never\n# performs SNAT and this option will be ignored; for other modes it must\
+    \ be set to false.\nnoSNAT: false\n\n# Tunnel protocols used for encapsulating\
+    \ traffic across Nodes. If WireGuard is enabled in trafficEncryptionMode,\n# this\
+    \ option will not take effect. Supported values:\n# - geneve (default)\n# - vxlan\n\
+    # - gre\n# - stt\n# Note that \"gre\" is not supported for IPv6 clusters (IPv6-only\
+    \ or dual-stack clusters).\ntunnelType: \"geneve\"\n\n# TunnelPort is the destination\
+    \ port for UDP and TCP based tunnel protocols (Geneve, VXLAN, and STT).\n# If\
+    \ zero, it will use the assigned IANA port for the protocol, i.e. 6081 for Geneve,\
+    \ 4789 for VXLAN,\n# and 7471 for STT.\ntunnelPort: 0\n\n# TunnelCsum determines\
+    \ whether to compute UDP encapsulation header (Geneve or VXLAN) checksums on outgoing\n\
+    # packets. For Linux kernel before Mar 2021, UDP checksum must be present to trigger\
+    \ GRO on the receiver for better\n# performance of Geneve and VXLAN tunnels. The\
+    \ issue has been fixed by\n# https://github.com/torvalds/linux/commit/89e5c58fc1e2857ccdaae506fb8bc5fed57ee063,\
     \ thus computing UDP checksum is\n# no longer necessary.\n# It should only be\
     \ set to true when you are using an unpatched Linux kernel and observing poor\
     \ transfer performance.\ntunnelCsum: false\n\n# Determines how tunnel traffic\
@@ -205,7 +208,9 @@ spec:
     # Enable Antrea Multi-cluster Gateway to support cross-cluster traffic.\n# This\
     \ feature is supported only with encap mode.\n  enable: false\n# The Namespace\
     \ where Antrea Multi-cluster Controller is running.\n# The default is antrea-agent's\
-    \ Namespace.\n  namespace: \"\"\n"
+    \ Namespace.\n  namespace: \"\"\n# Enable StretchedNetworkPolicy which could be\
+    \ enforced on cross-cluster traffic.\n# This feature is supported only with encap\
+    \ mode.\n  enableStretchedNetworkPolicy: false\n"
   antreaCNIConfig: "{\n    \"cniVersion\":\"0.3.0\",\n    \"name\": \"antrea\",\n\
     \    \"plugins\": [\n        {\n            \"type\": \"antrea\",\n          \
     \  \"ipam\": {\n                \"type\": \"host-local\"\n            }\n    \
@@ -233,24 +238,29 @@ spec:
     \ false\n\n# Enable managing external IPs of Services of LoadBalancer type.\n\
     #  ServiceExternalIP: false\n\n# Enable certificated-based authentication for\
     \ IPsec.\n#  IPsecCertAuth: false\n\n# Enable managing ExternalNode for unmanaged\
-    \ VM/BM.\n#  ExternalNode: false\n\n# The port for the antrea-controller APIServer\
-    \ to serve on.\n# Note that if it's set to another value, the `containerPort`\
-    \ of the `api` port of the\n# `antrea-controller` container must be set to the\
-    \ same value.\napiPort: 10349\n\n# Enable metrics exposure via Prometheus. Initializes\
-    \ Prometheus metrics listener.\nenablePrometheusMetrics: true\n\n# Indicates whether\
-    \ to use auto-generated self-signed TLS certificate.\n# If false, a Secret named\
-    \ \"antrea-controller-tls\" must be provided with the following keys:\n#   ca.crt:\
-    \ <CA certificate>\n#   tls.crt: <TLS certificate>\n#   tls.key: <TLS private\
-    \ key>\nselfSignedCert: true\n\n# Comma-separated list of Cipher Suites. If omitted,\
-    \ the default Go Cipher Suites will be used.\n# https://golang.org/pkg/crypto/tls/#pkg-constants\n\
-    # Note that TLS1.3 Cipher Suites cannot be added to the list. But the apiserver\
-    \ will always\n# prefer TLS1.3 Cipher Suites whenever possible.\ntlsCipherSuites:\
-    \ \"\"\n\n# TLS min version from: VersionTLS10, VersionTLS11, VersionTLS12, VersionTLS13.\n\
-    tlsMinVersion: \"\"\n\nnodeIPAM:\n  # Enable the integrated Node IPAM controller\
-    \ within the Antrea controller.\n  enableNodeIPAM: false\n  # CIDR ranges for\
-    \ Pods in cluster. String array containing single CIDR range, or multiple ranges.\n\
-    \  # The CIDRs could be either IPv4 or IPv6. At most one CIDR may be specified\
-    \ for each IP family.\n  # Value ignored when enableNodeIPAM is false.\n  clusterCIDRs:\n\
+    \ VM/BM.\n#  ExternalNode: false\n\n# Enable collecting support bundle files with\
+    \ SupportBundleCollection CRD.\n#  SupportBundleCollection: false\n\n# Enable\
+    \ multi-cluster features.\n#  Multicluster: false\n\n# Enable users to protect\
+    \ their applications by specifying how they are allowed to communicate with others,\
+    \ taking\n# into account application context.\n#  L7NetworkPolicy: false\n\n#\
+    \ The port for the antrea-controller APIServer to serve on.\n# Note that if it's\
+    \ set to another value, the `containerPort` of the `api` port of the\n# `antrea-controller`\
+    \ container must be set to the same value.\napiPort: 10349\n\n# Enable metrics\
+    \ exposure via Prometheus. Initializes Prometheus metrics listener.\nenablePrometheusMetrics:\
+    \ true\n\n# Indicates whether to use auto-generated self-signed TLS certificate.\n\
+    # If false, a Secret named \"antrea-controller-tls\" must be provided with the\
+    \ following keys:\n#   ca.crt: <CA certificate>\n#   tls.crt: <TLS certificate>\n\
+    #   tls.key: <TLS private key>\nselfSignedCert: true\n\n# Comma-separated list\
+    \ of Cipher Suites. If omitted, the default Go Cipher Suites will be used.\n#\
+    \ https://golang.org/pkg/crypto/tls/#pkg-constants\n# Note that TLS1.3 Cipher\
+    \ Suites cannot be added to the list. But the apiserver will always\n# prefer\
+    \ TLS1.3 Cipher Suites whenever possible.\ntlsCipherSuites: \"\"\n\n# TLS min\
+    \ version from: VersionTLS10, VersionTLS11, VersionTLS12, VersionTLS13.\ntlsMinVersion:\
+    \ \"\"\n\nnodeIPAM:\n  # Enable the integrated Node IPAM controller within the\
+    \ Antrea controller.\n  enableNodeIPAM: false\n  # CIDR ranges for Pods in cluster.\
+    \ String array containing single CIDR range, or multiple ranges.\n  # The CIDRs\
+    \ could be either IPv4 or IPv6. At most one CIDR may be specified for each IP\
+    \ family.\n  # Value ignored when enableNodeIPAM is false.\n  clusterCIDRs:\n\
     \  # CIDR ranges for Services in cluster. It is not necessary to specify it when\
     \ there is no overlap with clusterCIDRs.\n  # Value ignored when enableNodeIPAM\
     \ is false.\n  serviceCIDR: \"\"\n  serviceCIDRv6: \"\"\n  # Mask size for IPv4\
@@ -269,7 +279,9 @@ spec:
     \  autoApprove: true\n  # Indicates whether to use auto-generated self-signed\
     \ CA certificate.\n  # If false, a Secret named \"antrea-ipsec-ca\" must be provided\
     \ with the following keys:\n  #   tls.crt: <CA certificate>\n  #   tls.key: <CA\
-    \ private key>\n  selfSignedCA: true\n"
-  antreaImage: antrea/antrea-ubuntu:v1.9.0
+    \ private key>\n  selfSignedCA: true\n\nmulticluster:\n  # Enable StretchedNetworkPolicy\
+    \ which allow Antrea-native policies to select peers\n  # from other clusters\
+    \ in a ClusterSet.\n  enableStretchedNetworkPolicy: false\n"
+  antreaImage: antrea/antrea-ubuntu:v1.10.0
   antreaPlatform: kubernetes
 
