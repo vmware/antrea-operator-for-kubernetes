@@ -163,7 +163,7 @@ bundle-build:
 	docker tag ${BUNDLE_IMG} antrea/antrea-operator-bundle
 
 antrea-resources:
-	./hack/generate-antrea-resources.sh --platform $(ANTREA_PLATFORM)
+	./hack/generate-antrea-resources.sh --platform $(ANTREA_PLATFORM) --version $(VERSION)
 	cp ./config/rbac/role.yaml ./deploy/$(ANTREA_PLATFORM)/role.yaml
 
 # Generate package manifests.
