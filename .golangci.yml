@@ -15,7 +15,7 @@ linters:
   enable:
     - misspell
     - gofmt
-    - deadcode
+    - unused
     - staticcheck
     - gosec
     - goimports

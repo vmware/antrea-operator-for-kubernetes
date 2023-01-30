@@ -1,4 +1,4 @@
-FROM golang:1.16 as antrea-operator-build
+FROM golang:1.19 as antrea-operator-build
 
 WORKDIR /workspace
 # Copy the Go Modules manifests

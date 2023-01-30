@@ -9,6 +9,8 @@ import (
 
 	configv1 "github.com/openshift/api/config/v1"
 	ocoperv1 "github.com/openshift/api/operator/v1"
+	cnoclient "github.com/openshift/cluster-network-operator/pkg/client"
+	"github.com/openshift/cluster-network-operator/pkg/names"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -50,7 +52,8 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	cfg := ctrl.GetConfigOrDie()
+	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
 		Port:               9443,
@@ -71,7 +74,12 @@ func main() {
 		setupLog.Error(err, "unable to get status manager")
 		os.Exit(1)
 	}
-	controller, err := controllers.New(mgr, statusManager, sharedInfo)
+	cnoClient, err := cnoclient.NewClient(cfg, cfg, names.DefaultClusterName, nil)
+	if err != nil {
+		setupLog.Error(err, "fail to create client")
+		os.Exit(1)
+	}
+	controller, err := controllers.New(mgr, statusManager, sharedInfo, cnoClient)
 	if err != nil {
 		setupLog.Error(err, "unable to get controller")
 		os.Exit(1)
@@ -81,9 +89,8 @@ func main() {
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
-
 	if err = (&controllers.PodReconciler{
-		Client:     mgr.GetClient(),
+		Client:     cnoClient,
 		Log:        ctrl.Log.WithName("controllers").WithName("Pod"),
 		Scheme:     mgr.GetScheme(),
 		Status:     statusManager,
