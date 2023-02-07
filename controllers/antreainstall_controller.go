@@ -13,6 +13,7 @@ import (
 	configv1 "github.com/openshift/api/config/v1"
 	ocoperv1 "github.com/openshift/api/operator/v1"
 	"github.com/openshift/cluster-network-operator/pkg/apply"
+	cnoclient "github.com/openshift/cluster-network-operator/pkg/client"
 	"github.com/openshift/cluster-network-operator/pkg/render"
 	k8sutil "github.com/openshift/cluster-network-operator/pkg/util/k8s"
 	appsv1 "k8s.io/api/apps/v1"
@@ -119,7 +120,7 @@ func applyConfig(r *AntreaInstallReconciler, config configutil.Config, clusterCo
 
 		// Apply configurations.
 		for _, obj := range objs {
-			if err = apply.ApplyObject(context.TODO(), r.Client, obj); err != nil {
+			if err = apply.ApplyObject(context.TODO(), r.Client, obj, ""); err != nil {
 				log.Error(err, "failed to apply resource")
 				r.Status.SetDegraded(statusmanager.OperatorConfig, "ApplyObjectsError", fmt.Sprintf("Failed to apply operator configurations: %v", err))
 				return reconcile.Result{Requeue: true}, err
@@ -128,14 +129,14 @@ func applyConfig(r *AntreaInstallReconciler, config configutil.Config, clusterCo
 
 		// Delete old antrea-agent and antrea-controller pods.
 		if r.AppliedOperConfig != nil && agentNeedChange && !imageChange {
-			if err = deleteExistingPods(r.Client, operatortypes.AntreaAgentDaemonSetName); err != nil {
+			if err = deleteExistingPods(r.Client.Default().CRClient(), operatortypes.AntreaAgentDaemonSetName); err != nil {
 				msg := fmt.Sprintf("DaemonSet %s is not using the latest configuration updates because: %v", operatortypes.AntreaAgentDaemonSetName, err)
 				r.Status.SetDegraded(statusmanager.OperatorConfig, "DeleteOldPodsError", msg)
 				return reconcile.Result{Requeue: true}, err
 			}
 		}
 		if r.AppliedOperConfig != nil && controllerNeedChange && !imageChange {
-			if err = deleteExistingPods(r.Client, operatortypes.AntreaControllerDeploymentName); err != nil {
+			if err = deleteExistingPods(r.Client.Default().CRClient(), operatortypes.AntreaControllerDeploymentName); err != nil {
 				msg := fmt.Sprintf("Deployment %s is not using the latest configuration updates because: %v", operatortypes.AntreaControllerDeploymentName, err)
 				r.Status.SetDegraded(statusmanager.OperatorConfig, "DeleteOldPodsError", msg)
 				return reconcile.Result{Requeue: true}, err
@@ -148,7 +149,7 @@ func applyConfig(r *AntreaInstallReconciler, config configutil.Config, clusterCo
 func fetchAntreaInstall(r *AntreaInstallReconciler, request ctrl.Request) (*operatorv1.AntreaInstall, error, bool, bool) {
 	// Fetch antrea-install CR.
 	operConfig := &operatorv1.AntreaInstall{}
-	err := r.Client.Get(context.TODO(), types.NamespacedName{Namespace: operatortypes.OperatorNameSpace, Name: operatortypes.OperatorConfigName}, operConfig)
+	err := r.Client.Default().CRClient().Get(context.TODO(), types.NamespacedName{Namespace: operatortypes.OperatorNameSpace, Name: operatortypes.OperatorConfigName}, operConfig)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			msg := fmt.Sprintf("%s CR not found", operatortypes.OperatorConfigName)
@@ -219,7 +220,7 @@ func (oc *AdaptorOc) Reconcile(r *AntreaInstallReconciler, request ctrl.Request)
 
 	// Fetch Cluster Network CR.
 	clusterConfig := &configv1.Network{}
-	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: operatortypes.ClusterConfigName}, clusterConfig)
+	err := r.Client.Default().CRClient().Get(context.TODO(), types.NamespacedName{Name: operatortypes.ClusterConfigName}, clusterConfig)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			msg := "Cluster Network CR not found"
@@ -240,7 +241,7 @@ func (oc *AdaptorOc) Reconcile(r *AntreaInstallReconciler, request ctrl.Request)
 
 	// Fetch the Network.operator.openshift.io instance
 	operatorNetwork := &ocoperv1.Network{}
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: operatortypes.ClusterOperatorNetworkName}, operatorNetwork)
+	err = r.Client.Default().CRClient().Get(context.TODO(), types.NamespacedName{Name: operatortypes.ClusterOperatorNetworkName}, operatorNetwork)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			r.Status.SetDegraded(statusmanager.OperatorConfig, "NoClusterNetworkOperatorConfig", fmt.Sprintf("Cluster network operator configuration not found"))
@@ -293,7 +294,7 @@ func (oc *AdaptorOc) Reconcile(r *AntreaInstallReconciler, request ctrl.Request)
 
 // AntreaInstallReconciler reconciles a AntreaInstall object
 type AntreaInstallReconciler struct {
-	Client client.Client
+	Client cnoclient.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 	Status *statusmanager.StatusManager
@@ -306,9 +307,9 @@ type AntreaInstallReconciler struct {
 	AppliedOperConfig    *operatorv1.AntreaInstall
 }
 
-func New(mgr ctrl.Manager, statusManager *statusmanager.StatusManager, info *sharedinfo.SharedInfo) (*AntreaInstallReconciler, error) {
+func New(mgr ctrl.Manager, statusManager *statusmanager.StatusManager, info *sharedinfo.SharedInfo, cli cnoclient.Client) (*AntreaInstallReconciler, error) {
 	r := AntreaInstallReconciler{
-		Client:     mgr.GetClient(),
+		Client:     cli,
 		Log:        ctrl.Log.WithName("controllers").WithName("AntreaInstall"),
 		Scheme:     mgr.GetScheme(),
 		Status:     statusManager,
@@ -370,7 +371,8 @@ func (r *AntreaInstallReconciler) getAppliedOperConfig() (*operatorv1.AntreaInst
 	var antreaConfig *corev1.ConfigMap
 	configList := &corev1.ConfigMapList{}
 	label := map[string]string{"app": "antrea"}
-	if err := r.Client.List(context.TODO(), configList, client.InNamespace(operatortypes.AntreaNamespace), client.MatchingLabels(label)); err != nil {
+	crcClient := r.Client.Default().CRClient()
+	if err := crcClient.List(context.TODO(), configList, client.InNamespace(operatortypes.AntreaNamespace), client.MatchingLabels(label)); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil, nil
 		} else {
@@ -388,7 +390,7 @@ func (r *AntreaInstallReconciler) getAppliedOperConfig() (*operatorv1.AntreaInst
 		return nil, nil
 	}
 	antreaControllerDeployment := appsv1.Deployment{}
-	if err := r.Client.Get(context.TODO(), types.NamespacedName{Namespace: operatortypes.AntreaNamespace, Name: operatortypes.AntreaControllerDeploymentName}, &antreaControllerDeployment); err != nil {
+	if err := crcClient.Get(context.TODO(), types.NamespacedName{Namespace: operatortypes.AntreaNamespace, Name: operatortypes.AntreaControllerDeploymentName}, &antreaControllerDeployment); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil, nil
 		} else {
@@ -417,7 +419,7 @@ func deleteExistingPods(c client.Client, component string) error {
 	return err
 }
 
-func updateNetworkStatus(c client.Client, clusterConfig *configv1.Network, defaultMTU int) error {
+func updateNetworkStatus(c cnoclient.Client, clusterConfig *configv1.Network, defaultMTU int) error {
 	status := configutil.BuildNetworkStatus(clusterConfig, defaultMTU)
 	clusterConfig.Status = *status
 	data, err := k8sutil.ToUnstructured(clusterConfig)
@@ -427,7 +429,7 @@ func updateNetworkStatus(c client.Client, clusterConfig *configv1.Network, defau
 	}
 
 	if data != nil {
-		if err := apply.ApplyObject(context.TODO(), c, data); err != nil {
+		if err := apply.ApplyObject(context.TODO(), c, data, ""); err != nil {
 			log.Error(err, fmt.Sprintf("Could not apply (%s) %s/%s", data.GroupVersionKind(),
 				data.GetNamespace(), data.GetName()))
 			return err

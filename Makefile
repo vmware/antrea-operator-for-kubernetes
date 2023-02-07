@@ -45,7 +45,7 @@ all: manager
 
 .golangci-bin:
 	@echo "===> Installing Golangci-lint <==="
-	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $@ v1.30.0
+	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $@ v1.51.0
 
 .PHONY: golangci
 golangci: .golangci-bin
@@ -106,11 +106,7 @@ controller-gen:
 ifeq (, $(shell which controller-gen))
 	@{ \
 	set -e ;\
-	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$CONTROLLER_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.2 ;\
-	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
+	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.2 ;\
 	}
 CONTROLLER_GEN=$(GOBIN)/controller-gen
 else

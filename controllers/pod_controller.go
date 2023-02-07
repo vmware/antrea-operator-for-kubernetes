@@ -22,6 +22,7 @@ import (
 	"github.com/go-logr/logr"
 
 	"github.com/openshift/cluster-network-operator/pkg/apply"
+	cnocient "github.com/openshift/cluster-network-operator/pkg/client"
 
 	"github.com/vmware/antrea-operator-for-kubernetes/controllers/sharedinfo"
 	"github.com/vmware/antrea-operator-for-kubernetes/controllers/statusmanager"
@@ -34,7 +35,7 @@ var ResyncPeriod = 2 * time.Minute
 
 // PodReconciler reconciles a Pod object
 type PodReconciler struct {
-	Client     client.Client
+	Client     cnocient.Client
 	Log        logr.Logger
 	Scheme     *runtime.Scheme
 	Status     *statusmanager.StatusManager
@@ -91,7 +92,7 @@ func (r *PodReconciler) recreateResourceIfNotExist(request *reconcile.Request) e
 		curObject = &appsv1.Deployment{}
 		objectSpec = r.SharedInfo.AntreaControllerDeploymentSpec.DeepCopy()
 	}
-	err := r.Client.Get(context.TODO(), request.NamespacedName, curObject)
+	err := r.Client.Default().CRClient().Get(context.TODO(), request.NamespacedName, curObject)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			r.Log.Info(fmt.Sprintf("K8s resource - '%s' dose not exist", request.Name))
@@ -104,7 +105,7 @@ func (r *PodReconciler) recreateResourceIfNotExist(request *reconcile.Request) e
 		r.Log.Info(fmt.Sprintf("K8s resource - '%s' already exists", request.Name))
 		return nil
 	}
-	if err = apply.ApplyObject(context.TODO(), r.Client, objectSpec); err != nil {
+	if err = apply.ApplyObject(context.TODO(), r.Client, objectSpec, ""); err != nil {
 		r.Log.Error(
 			err, fmt.Sprintf("could not apply (%s) %s/%s",
 				objectSpec.GroupVersionKind(), objectSpec.GetNamespace(), objectSpec.GetName()))

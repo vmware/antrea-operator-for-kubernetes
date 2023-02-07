@@ -26,6 +26,9 @@ for f in sys.argv[1:]:
                                 a = roles.get(apig, {})
                                 verbs = list(set(a.get(res, []) + rule.get('verbs', [])))
                                 verbs.sort()
+                                # 'patch' is required by apply.ApplyObject.
+                                if 'patch' not in verbs:
+                                    verbs.append('patch')
                                 a[res] = verbs
                                 roles[apig] = a
 

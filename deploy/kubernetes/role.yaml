@@ -24,6 +24,7 @@ rules:
   - get
   - list
   - watch
+  - patch
 - apiGroups:
   - ''
   resources:
@@ -78,6 +79,7 @@ rules:
   verbs:
   - create
   - get
+  - patch
   - update
   - watch
 - apiGroups:
@@ -112,6 +114,7 @@ rules:
   - services/status
   verbs:
   - update
+  - patch
 - apiGroups:
   - admissionregistration.k8s.io
   resources:
@@ -119,6 +122,7 @@ rules:
   verbs:
   - create
   - get
+  - patch
   - update
 - apiGroups:
   - admissionregistration.k8s.io
@@ -127,6 +131,7 @@ rules:
   verbs:
   - create
   - get
+  - patch
   - update
 - apiGroups:
   - apiextensions.k8s.io
@@ -148,6 +153,7 @@ rules:
   - create
   - delete
   - get
+  - patch
   - update
 - apiGroups:
   - apps
@@ -181,18 +187,21 @@ rules:
   - get
   - list
   - watch
+  - patch
 - apiGroups:
   - authentication.k8s.io
   resources:
   - tokenreviews
   verbs:
   - create
+  - patch
 - apiGroups:
   - authorization.k8s.io
   resources:
   - subjectaccessreviews
   verbs:
   - create
+  - patch
 - apiGroups:
   - certificates.k8s.io
   resources:
@@ -201,6 +210,7 @@ rules:
   - create
   - get
   - list
+  - patch
   - watch
 - apiGroups:
   - certificates.k8s.io
@@ -208,12 +218,14 @@ rules:
   - certificatesigningrequests/approval
   verbs:
   - update
+  - patch
 - apiGroups:
   - certificates.k8s.io
   resources:
   - certificatesigningrequests/status
   verbs:
   - update
+  - patch
 - apiGroups:
   - certificates.k8s.io
   resources:
@@ -221,6 +233,7 @@ rules:
   verbs:
   - approve
   - sign
+  - patch
 - apiGroups:
   - controlplane.antrea.io
   resources:
@@ -229,6 +242,7 @@ rules:
   - delete
   - get
   - list
+  - patch
   - watch
 - apiGroups:
   - controlplane.antrea.io
@@ -238,6 +252,7 @@ rules:
   - delete
   - get
   - list
+  - patch
   - watch
 - apiGroups:
   - controlplane.antrea.io
@@ -247,6 +262,7 @@ rules:
   - get
   - list
   - watch
+  - patch
 - apiGroups:
   - controlplane.antrea.io
   resources:
@@ -255,6 +271,7 @@ rules:
   - delete
   - get
   - list
+  - patch
   - watch
 - apiGroups:
   - controlplane.antrea.io
@@ -263,12 +280,14 @@ rules:
   verbs:
   - create
   - get
+  - patch
 - apiGroups:
   - controlplane.antrea.io
   resources:
   - nodestatssummaries
   verbs:
   - create
+  - patch
 - apiGroups:
   - controlplane.antrea.io
   resources:
@@ -277,12 +296,14 @@ rules:
   - get
   - list
   - watch
+  - patch
 - apiGroups:
   - controlplane.antrea.io
   resources:
   - supportbundlecollections/status
   verbs:
   - create
+  - patch
 - apiGroups:
   - crd.antrea.io
   resources:
@@ -292,6 +313,7 @@ rules:
   - delete
   - get
   - list
+  - patch
   - update
 - apiGroups:
   - crd.antrea.io
@@ -302,6 +324,7 @@ rules:
   - delete
   - get
   - list
+  - patch
   - update
 - apiGroups:
   - crd.antrea.io
@@ -321,6 +344,7 @@ rules:
   - clustergroups/status
   verbs:
   - update
+  - patch
 - apiGroups:
   - crd.antrea.io
   resources:
@@ -339,6 +363,7 @@ rules:
   - clusternetworkpolicies/status
   verbs:
   - update
+  - patch
 - apiGroups:
   - crd.antrea.io
   resources:
@@ -355,6 +380,7 @@ rules:
   - egresses/status
   verbs:
   - update
+  - patch
 - apiGroups:
   - crd.antrea.io
   resources:
@@ -374,6 +400,7 @@ rules:
   verbs:
   - get
   - list
+  - patch
   - watch
 - apiGroups:
   - crd.antrea.io
@@ -390,6 +417,7 @@ rules:
   - get
   - list
   - watch
+  - patch
 - apiGroups:
   - crd.antrea.io
   resources:
@@ -408,6 +436,7 @@ rules:
   - groups/status
   verbs:
   - update
+  - patch
 - apiGroups:
   - crd.antrea.io
   resources:
@@ -415,6 +444,7 @@ rules:
   verbs:
   - get
   - list
+  - patch
   - watch
 - apiGroups:
   - crd.antrea.io
@@ -441,6 +471,7 @@ rules:
   - networkpolicies/status
   verbs:
   - update
+  - patch
 - apiGroups:
   - crd.antrea.io
   resources:
@@ -449,12 +480,14 @@ rules:
   - get
   - list
   - watch
+  - patch
 - apiGroups:
   - crd.antrea.io
   resources:
   - supportbundlecollections/status
   verbs:
   - update
+  - patch
 - apiGroups:
   - crd.antrea.io
   resources:
@@ -499,6 +532,7 @@ rules:
   - get
   - list
   - watch
+  - patch
 - apiGroups:
   - discovery.k8s.io
   resources:
@@ -507,6 +541,7 @@ rules:
   - get
   - list
   - watch
+  - patch
 - apiGroups:
   - k8s.cni.cncf.io
   resources:
@@ -515,6 +550,7 @@ rules:
   - get
   - list
   - watch
+  - patch
 - apiGroups:
   - multicluster.crd.antrea.io
   resources:
@@ -523,6 +559,7 @@ rules:
   - get
   - list
   - watch
+  - patch
 - apiGroups:
   - multicluster.crd.antrea.io
   resources:
@@ -531,6 +568,7 @@ rules:
   - get
   - list
   - watch
+  - patch
 - apiGroups:
   - multicluster.crd.antrea.io
   resources:
@@ -538,6 +576,7 @@ rules:
   verbs:
   - get
   - list
+  - patch
   - watch
 - apiGroups:
   - networking.k8s.io
@@ -547,6 +586,7 @@ rules:
   - get
   - list
   - watch
+  - patch
 - apiGroups:
   - operator.antrea.vmware.com
   resources:
@@ -622,6 +662,7 @@ rules:
   verbs:
   - get
   - list
+  - patch
 - apiGroups:
   - stats.antrea.io
   resources:
@@ -629,6 +670,7 @@ rules:
   verbs:
   - get
   - list
+  - patch
 - apiGroups:
   - stats.antrea.io
   resources:
@@ -636,6 +678,7 @@ rules:
   verbs:
   - get
   - list
+  - patch
 - apiGroups:
   - system.antrea.io
   resources:
@@ -644,6 +687,7 @@ rules:
   - delete
   - get
   - list
+  - patch
   - post
   - watch
 - apiGroups:
@@ -652,6 +696,7 @@ rules:
   - controllerinfos
   verbs:
   - get
+  - patch
 - apiGroups:
   - system.antrea.io
   resources:
@@ -660,6 +705,7 @@ rules:
   - delete
   - get
   - list
+  - patch
   - post
   - watch
 - apiGroups:
@@ -670,6 +716,7 @@ rules:
   - delete
   - get
   - list
+  - patch
   - post
   - watch
 - nonResourceURLs:
