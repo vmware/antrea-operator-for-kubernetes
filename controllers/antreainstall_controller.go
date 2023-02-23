@@ -15,7 +15,6 @@ import (
 	"github.com/openshift/cluster-network-operator/pkg/apply"
 	cnoclient "github.com/openshift/cluster-network-operator/pkg/client"
 	"github.com/openshift/cluster-network-operator/pkg/render"
-	k8sutil "github.com/openshift/cluster-network-operator/pkg/util/k8s"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -422,20 +421,9 @@ func deleteExistingPods(c client.Client, component string) error {
 func updateNetworkStatus(c cnoclient.Client, clusterConfig *configv1.Network, defaultMTU int) error {
 	status := configutil.BuildNetworkStatus(clusterConfig, defaultMTU)
 	clusterConfig.Status = *status
-	data, err := k8sutil.ToUnstructured(clusterConfig)
-	if err != nil {
-		log.Error(err, "Failed to render configurations")
-		return err
-	}
-
-	if data != nil {
-		if err := apply.ApplyObject(context.TODO(), c, data, ""); err != nil {
-			log.Error(err, fmt.Sprintf("Could not apply (%s) %s/%s", data.GroupVersionKind(),
-				data.GetNamespace(), data.GetName()))
-			return err
-		}
-	} else {
-		log.Error(err, "Retrieved data for updating network status is empty.")
+	if err := apply.ApplyObject(context.TODO(), c, clusterConfig, ""); err != nil {
+		log.Error(err, fmt.Sprintf("Could not apply (%s) %s/%s", clusterConfig.GroupVersionKind(),
+			clusterConfig.GetNamespace(), clusterConfig.GetName()))
 		return err
 	}
 	log.Info("Successfully updated Network Status")
