@@ -51,7 +51,7 @@ func fillAgentConfig(clusterConfig *configv1.Network, operConfig *operatorv1.Ant
 		if serviceCIDR, ok := antreaAgentConfig[types.ServiceCIDROption].(string); !ok {
 			antreaAgentConfig[types.ServiceCIDROption] = clusterConfig.Spec.ServiceNetwork[0]
 		} else if found := inSlice(serviceCIDR, clusterConfig.Spec.ServiceNetwork); !found {
-			log.Info("WARNING: option: %s is overwritten by cluster config")
+			log.Info("WARNING: ServiceCIDROption is overwritten by cluster config")
 			antreaAgentConfig[types.ServiceCIDROption] = clusterConfig.Spec.ServiceNetwork[0]
 		}
 	}

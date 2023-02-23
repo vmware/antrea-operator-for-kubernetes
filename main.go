@@ -11,7 +11,6 @@ import (
 	ocoperv1 "github.com/openshift/api/operator/v1"
 	cnoclient "github.com/openshift/cluster-network-operator/pkg/client"
 	"github.com/openshift/cluster-network-operator/pkg/names"
-	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -28,7 +27,7 @@ import (
 )
 
 var (
-	scheme   = runtime.NewScheme()
+	scheme   = clientgoscheme.Scheme
 	setupLog = ctrl.Log.WithName("setup")
 )
 
