@@ -54,6 +54,6 @@ for f in args.yaml_files:
             out['spec']['antreaCNIConfig'] = doc.get('data', {}).get('antrea-cni.conflist', "")
             out['spec']['antreaControllerConfig'] = doc.get('data', {}).get('antrea-controller.conf', "")
 
-print(yaml.dump(out))
+print(yaml.dump(out, default_flow_style=False, allow_unicode=True))
 
 exit(0)

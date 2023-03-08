@@ -758,6 +758,9 @@ spec:
                           namespace:
                             type: string
                           scope:
+                            enum:
+                            - Cluster
+                            - ClusterSet
                             type: string
                         required:
                         - name
@@ -3838,11 +3841,11 @@ subjects:
 apiVersion: v1
 data:
   antrea-agent.conf: |
-{{.AntreaAgentConfig | indent 4}}
+    {{.AntreaAgentConfig | indent 4}}
   antrea-cni.conflist: |
-{{.AntreaCNIConfig | indent 4}}
+    {{.AntreaCNIConfig | indent 4}}
   antrea-controller.conf: |
-{{.AntreaControllerConfig | indent 4}}
+    {{.AntreaControllerConfig | indent 4}}
 kind: ConfigMap
 metadata:
   labels:
@@ -3905,7 +3908,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: dc23e723afc8c100dc8bdc6b2f8a2774baf7dcf7a8eb0a34e168057d75b9f245
+        checksum/config: 2c1c5158b6a3ea32eff58bc1e498592e80ebecee07f51b10c722b67afce7b964
       labels:
         app: antrea
         component: antrea-controller
@@ -4066,7 +4069,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: dc23e723afc8c100dc8bdc6b2f8a2774baf7dcf7a8eb0a34e168057d75b9f245
+        checksum/config: 2c1c5158b6a3ea32eff58bc1e498592e80ebecee07f51b10c722b67afce7b964
         kubectl.kubernetes.io/default-container: antrea-agent
       labels:
         app: antrea
@@ -4186,7 +4189,6 @@ spec:
         - mountPath: /var/log/openvswitch
           name: host-var-log-antrea
           subPath: openvswitch
-      dnsPolicy: ClusterFirstWithHostNet
       hostNetwork: true
       initContainers:
       - command:
