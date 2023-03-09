@@ -161,6 +161,7 @@ bundle-build:
 antrea-resources:
 	./hack/generate-antrea-resources.sh --platform $(ANTREA_PLATFORM) --version $(VERSION)
 	cp ./config/rbac/role.yaml ./deploy/$(ANTREA_PLATFORM)/role.yaml
+	cp ./config/samples/operator_v1_antreainstall.yaml ./deploy/$(ANTREA_PLATFORM)/operator.antrea.vmware.com_v1_antreainstall_cr.yaml
 
 # Generate package manifests.
 packagemanifests: kustomize manifests
