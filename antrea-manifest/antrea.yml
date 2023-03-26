@@ -3841,11 +3841,11 @@ subjects:
 apiVersion: v1
 data:
   antrea-agent.conf: |
-    {{.AntreaAgentConfig | indent 4}}
+{{.AntreaAgentConfig | indent 4}}
   antrea-cni.conflist: |
-    {{.AntreaCNIConfig | indent 4}}
+{{.AntreaCNIConfig | indent 4}}
   antrea-controller.conf: |
-    {{.AntreaControllerConfig | indent 4}}
+{{.AntreaControllerConfig | indent 4}}
 kind: ConfigMap
 metadata:
   labels:
@@ -3908,7 +3908,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 2c1c5158b6a3ea32eff58bc1e498592e80ebecee07f51b10c722b67afce7b964
+        checksum/config: 8b0774e5e0eb1ad2807c6e5f18409d8f6a20e61317bafadb1009b9190ae163b3
       labels:
         app: antrea
         component: antrea-controller
@@ -4069,7 +4069,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 2c1c5158b6a3ea32eff58bc1e498592e80ebecee07f51b10c722b67afce7b964
+        checksum/config: 8b0774e5e0eb1ad2807c6e5f18409d8f6a20e61317bafadb1009b9190ae163b3
         kubectl.kubernetes.io/default-container: antrea-agent
       labels:
         app: antrea

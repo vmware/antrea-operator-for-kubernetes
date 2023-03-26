@@ -21,7 +21,7 @@ spec:
     # Enable EndpointSlice support in AntreaProxy. Don't enable this feature unless that EndpointSlice
     # API version v1 is supported and set as enabled in Kubernetes. If AntreaProxy is not enabled,
     # this flag will not take effect.
-    #  EndpointSlice: false
+    #  EndpointSlice: true
 
     # Enable TopologyAwareHints in AntreaProxy. This requires AntreaProxy and EndpointSlice to be
     # enabled, otherwise this flag will not take effect.
@@ -460,6 +460,6 @@ spec:
     multicluster:
       # Enable Multi-cluster NetworkPolicy.
       enableStretchedNetworkPolicy: false
-  antreaImage: antrea/antrea-ubi:latest
+  antreaImage: antrea/antrea-ubi:v1.11.0
   antreaPlatform: openshift
 
