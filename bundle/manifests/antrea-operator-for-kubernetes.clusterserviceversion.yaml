@@ -346,7 +346,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: antrea-operator
-                image: antrea/antrea-operator:v1.11.0
+                image: antrea/antrea-operator@sha256:d5588a718928f39d7c900826d3e6ce868d63048ea479f5b4a3667cc2949836d9
                 imagePullPolicy: IfNotPresent
                 name: antrea-operator
                 resources: {}
