@@ -109,6 +109,7 @@ kind: CustomResourceDefinition
 metadata:
   labels:
     app: antrea
+    served-by: antrea-controller
   name: clustergroups.crd.antrea.io
 spec:
   conversion:
@@ -250,7 +251,7 @@ spec:
                 type: array
             type: object
         type: object
-    served: true
+    served: false
     storage: false
   - name: v1alpha3
     schema:
@@ -594,6 +595,9 @@ spec:
                             type: object
                         type: object
                       type: array
+                    logLabel:
+                      pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]{0,61})?[A-Za-z0-9])?$
+                      type: string
                     name:
                       type: string
                     ports:
@@ -609,6 +613,10 @@ spec:
                             - UDP
                             - SCTP
                             type: string
+                          sourceEndPort:
+                            type: integer
+                          sourcePort:
+                            type: integer
                         type: object
                       type: array
                     protocols:
@@ -992,6 +1000,9 @@ spec:
                             type: object
                         type: object
                       type: array
+                    logLabel:
+                      pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]{0,61})?[A-Za-z0-9])?$
+                      type: string
                     name:
                       type: string
                     ports:
@@ -1007,6 +1018,10 @@ spec:
                             - UDP
                             - SCTP
                             type: string
+                          sourceEndPort:
+                            type: integer
+                          sourcePort:
+                            type: integer
                         type: object
                       type: array
                     protocols:
@@ -1105,8 +1120,8 @@ spec:
   scope: Cluster
   versions:
   - additionalPrinterColumns:
-    - description: Specifies the SNAT IP address for the selected workloads.
-      jsonPath: .spec.egressIP
+    - description: The effective SNAT IP address for the selected workloads.
+      jsonPath: .status.egressIP
       name: EgressIP
       type: string
     - jsonPath: .metadata.creationTimestamp
@@ -1121,11 +1136,17 @@ spec:
       openAPIV3Schema:
         properties:
           spec:
-            anyOf:
-            - required:
-              - egressIP
-            - required:
-              - externalIPPool
+            oneOf:
+            - anyOf:
+              - required:
+                - egressIP
+              - required:
+                - externalIPPool
+            - anyOf:
+              - required:
+                - egressIPs
+              - required:
+                - externalIPPools
             properties:
               appliedTo:
                 properties:
@@ -1183,13 +1204,27 @@ spec:
                 - format: ipv4
                 - format: ipv6
                 type: string
+              egressIPs:
+                items:
+                  oneOf:
+                  - maxLength: 0
+                  - format: ipv4
+                  - format: ipv6
+                  type: string
+                type: array
               externalIPPool:
                 type: string
+              externalIPPools:
+                items:
+                  type: string
+                type: array
             required:
             - appliedTo
             type: object
           status:
             properties:
+              egressIP:
+                type: string
               egressNode:
                 type: string
             type: object
@@ -1850,6 +1885,9 @@ spec:
                             type: object
                         type: object
                       type: array
+                    logLabel:
+                      pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]{0,61})?[A-Za-z0-9])?$
+                      type: string
                     name:
                       type: string
                     ports:
@@ -1865,6 +1903,10 @@ spec:
                             - UDP
                             - SCTP
                             type: string
+                          sourceEndPort:
+                            type: integer
+                          sourcePort:
+                            type: integer
                         type: object
                       type: array
                     protocols:
@@ -2214,6 +2256,9 @@ spec:
                             type: object
                         type: object
                       type: array
+                    logLabel:
+                      pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]{0,61})?[A-Za-z0-9])?$
+                      type: string
                     name:
                       type: string
                     ports:
@@ -2229,6 +2274,10 @@ spec:
                             - UDP
                             - SCTP
                             type: string
+                          sourceEndPort:
+                            type: integer
+                          sourcePort:
+                            type: integer
                         type: object
                       type: array
                     protocols:
@@ -3461,6 +3510,7 @@ rules:
   - get
   - list
   - watch
+  - patch
 - apiGroups:
   - multicluster.crd.antrea.io
   resources:
@@ -3546,6 +3596,7 @@ rules:
   - customresourcedefinitions
   verbs:
   - get
+  - list
   - update
 - apiGroups:
   - ""
@@ -3587,14 +3638,10 @@ rules:
   - create
 - apiGroups:
   - apiregistration.k8s.io
-  resourceNames:
-  - v1alpha1.stats.antrea.io
-  - v1beta1.system.antrea.io
-  - v1beta2.controlplane.antrea.io
   resources:
   - apiservices
   verbs:
-  - get
+  - list
   - update
 - apiGroups:
   - apiregistration.k8s.io
@@ -3610,15 +3657,11 @@ rules:
   - delete
 - apiGroups:
   - admissionregistration.k8s.io
-  resourceNames:
-  - labelsmutator.antrea.io
-  - crdmutator.antrea.io
-  - crdvalidator.antrea.io
   resources:
   - mutatingwebhookconfigurations
   - validatingwebhookconfigurations
   verbs:
-  - get
+  - list
   - update
 - apiGroups:
   - certificates.k8s.io
@@ -3908,7 +3951,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 8b0774e5e0eb1ad2807c6e5f18409d8f6a20e61317bafadb1009b9190ae163b3
+        checksum/config: 1f7ec3f7c131b06c35ae624655ebbf81ca332c08abcfcddd434dd3c0a5387dab
       labels:
         app: antrea
         component: antrea-controller
@@ -4011,6 +4054,7 @@ kind: APIService
 metadata:
   labels:
     app: antrea
+    served-by: antrea-controller
   name: v1alpha1.stats.antrea.io
 spec:
   group: stats.antrea.io
@@ -4026,6 +4070,7 @@ kind: APIService
 metadata:
   labels:
     app: antrea
+    served-by: antrea-controller
   name: v1beta1.system.antrea.io
 spec:
   group: system.antrea.io
@@ -4041,6 +4086,7 @@ kind: APIService
 metadata:
   labels:
     app: antrea
+    served-by: antrea-controller
   name: v1beta2.controlplane.antrea.io
 spec:
   group: controlplane.antrea.io
@@ -4069,7 +4115,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 8b0774e5e0eb1ad2807c6e5f18409d8f6a20e61317bafadb1009b9190ae163b3
+        checksum/config: 1f7ec3f7c131b06c35ae624655ebbf81ca332c08abcfcddd434dd3c0a5387dab
         kubectl.kubernetes.io/default-container: antrea-agent
       labels:
         app: antrea
@@ -4270,6 +4316,7 @@ kind: MutatingWebhookConfiguration
 metadata:
   labels:
     app: antrea
+    served-by: antrea-controller
   name: crdmutator.antrea.io
 webhooks:
 - admissionReviewVersions:
@@ -4322,6 +4369,7 @@ kind: ValidatingWebhookConfiguration
 metadata:
   labels:
     app: antrea
+    served-by: antrea-controller
   name: crdvalidator.antrea.io
 webhooks:
 - admissionReviewVersions:

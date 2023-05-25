@@ -25,7 +25,7 @@ spec:
 
     # Enable TopologyAwareHints in AntreaProxy. This requires AntreaProxy and EndpointSlice to be
     # enabled, otherwise this flag will not take effect.
-    #  TopologyAwareHints: false
+    #  TopologyAwareHints: true
 
     # Enable traceflow which provides packet tracing feature to diagnose network issue.
     #  Traceflow: true
@@ -54,7 +54,7 @@ spec:
     #  AntreaIPAM: false
 
     # Enable multicast traffic.
-    #  Multicast: false
+    #  Multicast: true
 
     # Enable Antrea Multi-cluster features.
     #  Multicluster: false
@@ -264,12 +264,23 @@ spec:
     transportInterface: ""
 
     multicast:
-    # The names of the interfaces on Nodes that are used to forward multicast traffic.
-    # Defaults to transport interface if not set.
+      # To enable Multicast, you need to set "enable" to true, and ensure that the
+      # Multicast feature gate is also enabled (which is the default).
+      enable: false
+
+      # The names of the interfaces on Nodes that are used to forward multicast traffic.
+      # Defaults to transport interface if not set.
       multicastInterfaces:
 
-    # The interval at which the antrea-agent sends IGMP queries to Pods.
-    # Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+      # The versions of IGMP queries antrea-agent sends to Pods.
+      # Valid versions are 1, 2 and 3.
+      igmpQueryVersions:
+      - 1
+      - 2
+      - 3
+
+      # The interval at which the antrea-agent sends IGMP queries to Pods.
+      # Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
       igmpQueryInterval: "125s"
 
     # The network CIDRs of the interface on Node which is used for tunneling or routing the traffic across
@@ -325,6 +336,16 @@ spec:
       enableStretchedNetworkPolicy: false
     # Enable Pod to Pod connectivity.
       enablePodToPodConnectivity: false
+    # Determines how cross-cluster traffic is encrypted.
+    # It has the following options:
+    # - none (default):  Cross-cluster traffic will not be encrypted.
+    # - wireGuard:       Use WireGuard to encrypt traffic.
+      trafficEncryptionMode: "none"
+    # WireGuard tunnel configuration for cross-cluster traffic.
+    # It only works when multicluster.trafficEncryptionMode is wireGuard.
+      wireGuard:
+        # WireGuard tunnel port for cross-cluster traffic.
+        port: 51821
   antreaCNIConfig: |
     {
         "cniVersion":"0.3.0",
@@ -369,13 +390,13 @@ spec:
     #  NetworkPolicyStats: true
 
     # Enable multicast traffic.
-    #  Multicast: false
+    #  Multicast: true
 
     # Enable controlling SNAT IPs of Pod egress traffic.
     #  Egress: true
 
     # Run Kubernetes NodeIPAMController with Antrea.
-    #  NodeIPAM: false
+    #  NodeIPAM: true
 
     # Enable AntreaIPAM, which can allocate IP addresses from IPPools. AntreaIPAM is required by the
     # bridging mode and allocates IPs to Pods in bridging mode. It is also required to use Antrea for
@@ -425,6 +446,10 @@ spec:
     # TLS min version from: VersionTLS10, VersionTLS11, VersionTLS12, VersionTLS13.
     tlsMinVersion: ""
 
+    # File path of the certificate bundle for all the signers that is recognized for incoming client
+    # certificates.
+    clientCAFile: ""
+
     nodeIPAM:
       # Enable the integrated Node IPAM controller within the Antrea controller.
       enableNodeIPAM: false
@@ -460,6 +485,6 @@ spec:
     multicluster:
       # Enable Multi-cluster NetworkPolicy.
       enableStretchedNetworkPolicy: false
-  antreaImage: antrea/antrea-ubi:v1.11.0
+  antreaImage: antrea/antrea-ubi:v1.12.0
   antreaPlatform: openshift
 
