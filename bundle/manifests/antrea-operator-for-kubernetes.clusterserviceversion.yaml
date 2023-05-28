@@ -21,7 +21,7 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    createdAt: "2023-05-25T06:24:22Z"
+    createdAt: "2023-05-25T08:03:43Z"
     description: An operator which installs Antrea network CNI plugin on the Kubernetes
       cluster.
     operators.operatorframework.io/builder: operator-sdk-v1.27.0
@@ -347,7 +347,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: antrea-operator
-                image: antrea/antrea-operator:v1.12.0
+                image: antrea/antrea-operator@sha256:8186ee415fc9909ffd342584bee5ef82ebbdda28ecec5ee4f968289d178bdf88
                 imagePullPolicy: IfNotPresent
                 name: antrea-operator
                 resources: {}
