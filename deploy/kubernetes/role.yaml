@@ -185,6 +185,13 @@ rules:
 - apiGroups:
   - apps
   resources:
+  - replicasets
+  verbs:
+  - list
+  - patch
+- apiGroups:
+  - apps
+  resources:
   - statefulsets
   verbs:
   - get
@@ -382,8 +389,8 @@ rules:
   resources:
   - egresses/status
   verbs:
-  - update
   - patch
+  - update
 - apiGroups:
   - crd.antrea.io
   resources:
@@ -611,6 +618,24 @@ rules:
   - patch
   - update
 - apiGroups:
+  - policy.networking.k8s.io
+  resources:
+  - adminnetworkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+- apiGroups:
+  - policy.networking.k8s.io
+  resources:
+  - baselineadminnetworkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+- apiGroups:
   - rbac.authorization.k8s.io
   resources:
   - clusterrolebindings
@@ -690,9 +715,9 @@ rules:
   - delete
   - get
   - list
-  - patch
   - post
   - watch
+  - patch
 - apiGroups:
   - system.antrea.io
   resources:
@@ -705,6 +730,7 @@ rules:
   resources:
   - supportbundles
   verbs:
+  - create
   - delete
   - get
   - list
@@ -735,11 +761,23 @@ rules:
   verbs:
   - get
 - nonResourceURLs:
+  - /debug/pprof
+  verbs:
+  - get
+- nonResourceURLs:
+  - /debug/pprof/*
+  verbs:
+  - get
+- nonResourceURLs:
   - /featuregates
   verbs:
   - get
 - nonResourceURLs:
   - /loglevel
+  verbs:
+  - get
+- nonResourceURLs:
+  - /metrics
   verbs:
   - get
 - nonResourceURLs:
