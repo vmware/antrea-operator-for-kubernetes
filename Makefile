@@ -134,12 +134,11 @@ bundle: manifests kustomize
 	operator-sdk generate kustomize manifests -q
 	# OCP requires that an image will be identified by its digest hash
 	if [ "$(IS_CERTIFICATION)" == "true" ]; then \
-		docker pull antrea/antrea-operator:v$(VERSION) ;\
-		cd config/manager && $(KUSTOMIZE) edit set image $(shell docker inspect --format='{{index .RepoDigests 0}}' antrea/antrea-operator:v$(VERSION)) ;\
+	        $(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --use-image-digests --overwrite $(BUNDLE_METADATA_OPTS) --version $(VERSION) ; \
 	else \
 		cd config/manager && $(KUSTOMIZE) edit set image antrea/antrea-operator:v$(VERSION) ;\
+	        $(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite $(BUNDLE_METADATA_OPTS) --version $(VERSION) ; \
 	fi
-	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite $(BUNDLE_METADATA_OPTS) --version $(VERSION)
 	operator-sdk bundle validate ./bundle
 	cp config/samples/operator_v1_antreainstall.yaml ./deploy/$(ANTREA_PLATFORM)/operator.antrea.vmware.com_v1_antreainstall_cr.yaml
 	cp config/crd/operator.antrea.vmware.com_antreainstalls.yaml deploy/$(ANTREA_PLATFORM)/operator.antrea.vmware.com_antreainstalls_crd.yaml
