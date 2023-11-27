@@ -22,7 +22,11 @@ jobs:
     runs-on: [ubuntu-latest]
     needs: get-version
     steps:
-      - uses: actions/checkout@v2
+      - name: Set up Go 1.19
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.19
+      - uses: actions/checkout@v4
       - name: Build antrea-operator Docker image
         env:
           VERSION: ${{ needs.get-version.outputs.version }}

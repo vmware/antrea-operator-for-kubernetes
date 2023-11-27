@@ -17,7 +17,7 @@ COPY version/ version/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go
 
-
+FROM golang:1.19.10 as golang-build
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 
 LABEL name="antrea-operator-for-kubernetes"
