@@ -1,1 +1,1 @@
-{{.AntreaCNIConfig | indent 4}}
+{{- .AntreaCNIConfig | nindent 4 }}

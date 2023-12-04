@@ -6413,11 +6413,11 @@ subjects:
 apiVersion: v1
 data:
   antrea-agent.conf: |
-{{.AntreaAgentConfig | indent 4}}
+    {{- .AntreaAgentConfig | nindent 4 }}
   antrea-cni.conflist: |
-{{.AntreaCNIConfig | indent 4}}
+    {{- .AntreaCNIConfig | nindent 4 }}
   antrea-controller.conf: |
-{{.AntreaControllerConfig | indent 4}}
+    {{- .AntreaControllerConfig | nindent 4 }}
 kind: ConfigMap
 metadata:
   labels:

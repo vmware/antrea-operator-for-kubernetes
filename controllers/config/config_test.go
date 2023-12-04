@@ -19,7 +19,7 @@ import (
 
 	operatorv1 "github.com/vmware/antrea-operator-for-kubernetes/api/v1"
 	operatortypes "github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
-	"github.com/vmware/antrea-operator-for-kubernetes/version"
+	"github.com/vmware/antrea-operator-for-kubernetes/internal/version"
 )
 
 var mockClusterConfig = configv1.Network{
@@ -179,12 +179,12 @@ func TestRenderOc(t *testing.T) {
 			err = runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), antreaDeployment)
 			g.Expect(err).ShouldNot(HaveOccurred())
 			g.Expect(antreaDeployment.Spec.Template.Spec.Containers[0].Image).Should(Equal(operatortypes.DefaultAntreaImage))
-			g.Expect(antreaDeployment.Annotations["release.openshift.io/version"]).Should(Equal(version.Version))
+			g.Expect(antreaDeployment.Annotations["release.openshift.io/version"]).Should(Equal(version.GetVersion()))
 		} else if obj.GetKind() == "DaemonSet" && obj.GetNamespace() == "kube-system" && obj.GetName() == "antrea-agent" {
 			antreaDaemonSet := &appsv1.DaemonSet{}
 			err = runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), antreaDaemonSet)
 			g.Expect(err).ShouldNot(HaveOccurred())
-			g.Expect(antreaDaemonSet.Annotations["release.openshift.io/version"]).Should(Equal(version.Version))
+			g.Expect(antreaDaemonSet.Annotations["release.openshift.io/version"]).Should(Equal(version.GetVersion()))
 		}
 	}
 }
@@ -212,12 +212,12 @@ func TestRenderK8s(t *testing.T) {
 			err = runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), antreaDeployment)
 			g.Expect(err).ShouldNot(HaveOccurred())
 			g.Expect(antreaDeployment.Spec.Template.Spec.Containers[0].Image).Should(Equal(operatortypes.DefaultAntreaImage))
-			g.Expect(antreaDeployment.Annotations["release.openshift.io/version"]).Should(Equal(version.Version))
+			g.Expect(antreaDeployment.Annotations["release.openshift.io/version"]).Should(Equal(version.GetVersion()))
 		} else if obj.GetKind() == "DaemonSet" && obj.GetNamespace() == "kube-system" && obj.GetName() == "antrea-agent" {
 			antreaDaemonSet := &appsv1.DaemonSet{}
 			err = runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), antreaDaemonSet)
 			g.Expect(err).ShouldNot(HaveOccurred())
-			g.Expect(antreaDaemonSet.Annotations["release.openshift.io/version"]).Should(Equal(version.Version))
+			g.Expect(antreaDaemonSet.Annotations["release.openshift.io/version"]).Should(Equal(version.GetVersion()))
 		}
 	}
 }

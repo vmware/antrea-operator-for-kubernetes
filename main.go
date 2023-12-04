@@ -5,6 +5,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	configv1 "github.com/openshift/api/config/v1"
@@ -22,7 +23,7 @@ import (
 	"github.com/vmware/antrea-operator-for-kubernetes/controllers/sharedinfo"
 	"github.com/vmware/antrea-operator-for-kubernetes/controllers/statusmanager"
 	"github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
-	"github.com/vmware/antrea-operator-for-kubernetes/version"
+	"github.com/vmware/antrea-operator-for-kubernetes/internal/version"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -41,13 +42,20 @@ func init() {
 }
 
 func main() {
+	var printVersion bool
 	var metricsAddr string
 	var enableLeaderElection bool
+	flag.BoolVar(&printVersion, "version", false, "Show version and exit")
 	flag.StringVar(&metricsAddr, "metrics-addr", "0", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.Parse()
+
+	if printVersion {
+		fmt.Println(version.GetVersion())
+		os.Exit(0)
+	}
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
@@ -68,7 +76,7 @@ func main() {
 		setupLog.Error(err, "unable to get shareinfo")
 		os.Exit(1)
 	}
-	statusManager, err := statusmanager.New(mgr.GetClient(), mgr.GetRESTMapper(), types.AntreaClusterOperatorName, types.OperatorNameSpace, version.Version, sharedInfo)
+	statusManager, err := statusmanager.New(mgr.GetClient(), mgr.GetRESTMapper(), types.AntreaClusterOperatorName, types.OperatorNameSpace, version.GetVersion(), sharedInfo)
 	if err != nil {
 		setupLog.Error(err, "unable to get status manager")
 		os.Exit(1)
