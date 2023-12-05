@@ -21,7 +21,7 @@ import (
 
 	operatorv1 "github.com/vmware/antrea-operator-for-kubernetes/api/v1"
 	"github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
-	"github.com/vmware/antrea-operator-for-kubernetes/version"
+	"github.com/vmware/antrea-operator-for-kubernetes/internal/version"
 )
 
 var log = ctrl.Log.WithName("config")
@@ -322,7 +322,7 @@ func pluginCNIConfDir(conf *ocoperv1.NetworkSpec) string {
 
 func generateRenderData(operatorNetwork *ocoperv1.Network, operConfig *operatorv1.AntreaInstall) *render.RenderData {
 	renderData := render.MakeRenderData()
-	renderData.Data[types.ReleaseVersion] = version.Version
+	renderData.Data[types.ReleaseVersion] = version.GetVersion()
 	renderData.Data[types.AntreaAgentConfigRenderKey] = operConfig.Spec.AntreaAgentConfig
 	renderData.Data[types.AntreaCNIConfigRenderKey] = operConfig.Spec.AntreaCNIConfig
 	renderData.Data[types.AntreaControllerConfigRenderKey] = operConfig.Spec.AntreaControllerConfig

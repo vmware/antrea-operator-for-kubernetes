@@ -27,7 +27,7 @@ import (
 	operatorv1 "github.com/vmware/antrea-operator-for-kubernetes/api/v1"
 	"github.com/vmware/antrea-operator-for-kubernetes/controllers/sharedinfo"
 	operatortypes "github.com/vmware/antrea-operator-for-kubernetes/controllers/types"
-	"github.com/vmware/antrea-operator-for-kubernetes/version"
+	"github.com/vmware/antrea-operator-for-kubernetes/internal/version"
 )
 
 var log = logf.Log.WithName("status_manager")
@@ -177,7 +177,7 @@ func (status *StatusManager) setConditions(progressing []string, reachedAvailabl
 func (status *StatusManager) setClusterOperatorConditions(co *configv1.ClusterOperator, reachedAvailableLevel bool, conditions *[]configv1.ClusterOperatorStatusCondition) {
 	if reachedAvailableLevel {
 		co.Status.Versions = []configv1.OperandVersion{
-			{Name: "operator", Version: version.Version},
+			{Name: "operator", Version: version.GetVersion()},
 		}
 	}
 	status.CombineConditions(&co.Status.Conditions, conditions)

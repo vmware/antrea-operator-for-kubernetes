@@ -1,4 +1,5 @@
 SHELL := /bin/bash
+LDFLAGS :=
 
 # Options for 'bundle-build'
 ifneq ($(origin CHANNELS), undefined)
@@ -21,6 +22,7 @@ ifndef IS_CERTIFICATION
 endif
 
 include versioning.mk
+LDFLAGS += $(VERSION_LDFLAGS)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -41,7 +43,7 @@ PKG_IS_DEFAULT_CHANNEL := --default-channel
 endif
 PKG_MAN_OPTS ?= $(FROM_VERSION) $(PKG_CHANNELS) $(PKG_IS_DEFAULT_CHANNEL)
 
-all: manager
+all: generate golangci manager
 
 .golangci-bin:
 	@echo "===> Installing Golangci-lint <==="
@@ -65,13 +67,13 @@ test: generate golangci manifests
 	source $(ENVTEST_ASSETS_DIR)/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
 
 # Build manager binary
-manager: generate golangci
+manager:
 	@echo "===> Building antrea-operator binary <==="
-	go build -o bin/manager main.go
+	go build -o bin/manager -ldflags '$(LDFLAGS)' main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate golangci manifests
-	go run ./main.go
+	go run -ldflags '$(LDFLAGS)' ./main.go
 
 # Install CRDs into a cluster
 install: manifests kustomize
@@ -97,7 +99,7 @@ generate: controller-gen
 
 # Build the docker image
 docker-build:
-	docker build -f build/Dockerfile . -t ${IMG}
+	docker build -f build/Dockerfile --label version="$(VERSION)" . -t ${IMG}
 	docker tag ${IMG} antrea/antrea-operator
 
 # find or download controller-gen
@@ -117,11 +119,7 @@ kustomize:
 ifeq (, $(shell which kustomize))
 	@{ \
 	set -e ;\
-	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v3@v3.5.4 ;\
-	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
+	go install sigs.k8s.io/kustomize/kustomize/v5@v5.2.1 ;\
 	}
 KUSTOMIZE=$(GOBIN)/kustomize
 else
