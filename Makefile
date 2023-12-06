@@ -21,6 +21,9 @@ ifndef IS_CERTIFICATION
 	IS_CERTIFICATION=false
 endif
 
+.PHONY: all
+all: generate golangci manager
+
 include versioning.mk
 LDFLAGS += $(VERSION_LDFLAGS)
 
@@ -43,21 +46,24 @@ PKG_IS_DEFAULT_CHANNEL := --default-channel
 endif
 PKG_MAN_OPTS ?= $(FROM_VERSION) $(PKG_CHANNELS) $(PKG_IS_DEFAULT_CHANNEL)
 
-all: generate golangci manager
+GOLANGCI_LINT_VERSION := v1.51.0
+GOLANGCI_LINT_BINDIR  := $(CURDIR)/.golangci-bin
+GOLANGCI_LINT_BIN     := $(GOLANGCI_LINT_BINDIR)/$(GOLANGCI_LINT_VERSION)/golangci-lint
 
-.golangci-bin:
+$(GOLANGCI_LINT_BIN):
 	@echo "===> Installing Golangci-lint <==="
-	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $@ v1.51.0
+	@rm -rf $(GOLANGCI_LINT_BINDIR)/* # remove old versions
+	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOLANGCI_LINT_BINDIR)/$(GOLANGCI_LINT_VERSION) $(GOLANGCI_LINT_VERSION)
 
 .PHONY: golangci
-golangci: .golangci-bin
+golangci: $(GOLANGCI_LINT_BIN)
 	@echo "===> Running golangci <==="
-	@GOOS=linux .golangci-bin/golangci-lint run -c .golangci.yml
+	@GOOS=linux $(GOLANGCI_LINT_BIN) run -c $(CURDIR)/.golangci.yml
 
 .PHONY: golangci-fix
-golangci-fix: .golangci-bin
-	@echo "===> Running golangci-fix<==="
-	@GOOS=linux .golangci-bin/golangci-lint run -c .golangci.yml --fix
+golangci-fix: $(GOLANGCI_LINT_BIN)
+	@echo "===> Running golangci-fix <==="
+	@GOOS=linux $(GOLANGCI_LINT_BIN) run -c $(CURDIR)/.golangci.yml --fix
 
 # Run tests
 ENVTEST_ASSETS_DIR = $(shell pwd)/testbin
@@ -102,29 +108,30 @@ docker-build:
 	docker build -f build/Dockerfile --label version="$(VERSION)" . -t ${IMG}
 	docker tag ${IMG} antrea/antrea-operator
 
-# find or download controller-gen
-# download controller-gen if necessary
-controller-gen:
-ifeq (, $(shell which controller-gen))
-	@{ \
-	set -e ;\
-	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.2 ;\
-	}
-CONTROLLER_GEN=$(GOBIN)/controller-gen
-else
-CONTROLLER_GEN=$(shell which controller-gen)
-endif
+CONTROLLER_GEN_VERSION := v0.6.2
+CONTROLLER_GEN_BINDIR  := $(CURDIR)/.controller-gen
+CONTROLLER_GEN         := $(CONTROLLER_GEN_BINDIR)/$(CONTROLLER_GEN_VERSION)/controller-gen
 
-kustomize:
-ifeq (, $(shell which kustomize))
-	@{ \
-	set -e ;\
-	go install sigs.k8s.io/kustomize/kustomize/v5@v5.2.1 ;\
-	}
-KUSTOMIZE=$(GOBIN)/kustomize
-else
-KUSTOMIZE=$(shell which kustomize)
-endif
+$(CONTROLLER_GEN):
+	@echo "===> Installing Controller-gen  <==="
+	@rm -rf $(CONTROLLER_GEN_BINDIR)/* # remove old versions
+	GOBIN=$(CONTROLLER_GEN_BINDIR)/$(CONTROLLER_GEN_VERSION) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_GEN_VERSION)
+
+.PHONY: controller-gen
+controller-gen: $(CONTROLLER_GEN)
+
+KUSTOMIZE_VERSION := 5.3.0
+KUSTOMIZE_BINDIR  := $(CURDIR)/.kustomize
+KUSTOMIZE         := $(KUSTOMIZE_BINDIR)/$(KUSTOMIZE_VERSION)/kustomize
+
+$(KUSTOMIZE):
+	@echo "===> Installing Kustomize <==="
+	@rm -rf $(KUSTOMIZE_BINDIR)/* # remove old versions
+	@mkdir -p $(KUSTOMIZE_BINDIR)/$(KUSTOMIZE_VERSION)
+	@curl -sSfL https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh | bash -s -- $(KUSTOMIZE_VERSION) $(KUSTOMIZE_BINDIR)/$(KUSTOMIZE_VERSION)
+
+.PHONY: kustomize
+kustomize: $(KUSTOMIZE)
 
 # Generate bundle manifests and metadata, then validate generated files.
 .PHONY: bundle
@@ -156,7 +163,7 @@ bundle-build:
 	docker tag ${BUNDLE_IMG} antrea/antrea-operator-bundle
 
 antrea-resources:
-	./hack/generate-antrea-resources.sh --platform $(ANTREA_PLATFORM) --version $(VERSION)
+	KUSTOMIZE=$(KUSTOMIZE) ./hack/generate-antrea-resources.sh --platform $(ANTREA_PLATFORM) --version $(VERSION)
 	cp ./config/rbac/role.yaml ./deploy/$(ANTREA_PLATFORM)/role.yaml
 	cp ./config/samples/operator_v1_antreainstall.yaml ./deploy/$(ANTREA_PLATFORM)/operator.antrea.vmware.com_v1_antreainstall_cr.yaml
 
@@ -178,3 +185,10 @@ tidy:
 
 .PHONY: bin
 bin: manager
+
+.PHONY: clean
+clean:
+	@rm -rf bin
+	@rm -rf $(GOLANGCI_LINT_BINDIR)
+	@rm -rf $(KUSTOMIZE_BINDIR)
+	@rm -rf $(CONTROLLER_GEN_BINDIR)
