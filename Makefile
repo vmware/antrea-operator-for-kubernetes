@@ -134,7 +134,7 @@ bundle: manifests kustomize
 	if [ "$(IS_CERTIFICATION)" == "true" ]; then \
 	        $(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --use-image-digests --overwrite $(BUNDLE_METADATA_OPTS) --version $(VERSION) ; \
 	else \
-		cd config/manager && $(KUSTOMIZE) edit set image antrea/antrea-operator:v$(VERSION) ;\
+		pushd config/manager && $(KUSTOMIZE) edit set image antrea/antrea-operator:v$(VERSION) && popd;\
 	        $(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite $(BUNDLE_METADATA_OPTS) --version $(VERSION) ; \
 	fi
 	operator-sdk bundle validate ./bundle
