@@ -13,10 +13,8 @@ Generate a YAML manifest for Antrea using Kustomize and print it to stdout.
         --help, -h                    Print this message and exit
 
 This tool uses kustomize (https://github.com/kubernetes-sigs/kustomize) to generate manifests for
-Antrea. You can set the KUSTOMIZE environment variable to the path of the kustomize binary you want
-us to use. Otherwise we will download the appropriate version of the kustomize binary and use
-it (this is the recommended approach since different versions of kustomize may create different
-output YAMLs)."
+Antrea. You must set the KUSTOMIZE environment variable to the path of the kustomize binary you want
+us to use."
 
 function print_usage {
     echoerr "$_usage"
@@ -59,12 +57,8 @@ fi
 
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-source $THIS_DIR/verify-kustomize.sh
-
 if [ -z "$KUSTOMIZE" ]; then
-    KUSTOMIZE="$(verify_kustomize)"
-elif ! $KUSTOMIZE version > /dev/null 2>&1; then
-    echoerr "$KUSTOMIZE does not appear to be a valid kustomize binary"
+    echoerr "KUSTOMIZE environment variable must be set"
     print_help
     exit 1
 fi
@@ -119,7 +113,7 @@ $KUSTOMIZE edit add patch --path controllerImage.yml
 $KUSTOMIZE edit add patch --path agentImagePullPolicy.yml
 $KUSTOMIZE edit add patch --path controllerImagePullPolicy.yml
 
-$KUSTOMIZE build | sed 's/^\s*{{/{{/; s/\\"\({{.*}}\)\\"/"\1"/; '"s/'\({{.*}}\)'/\1/" > $THIS_DIR/../antrea-manifest/antrea.yml
+$KUSTOMIZE build | sed 's/\\"\({{.*}}\)\\"/"\1"/; '"s/'\({{.*}}\)'/\1/" > $THIS_DIR/../antrea-manifest/antrea.yml
 
 popd > /dev/null
 
