@@ -13,8 +13,12 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
+# Default to Openshift for the platform, which means for example that the Antrea
+# image will default to antrea-ubi in generate manifests. To use the operator
+# with a "vanilla" (non-Openshift) K8s cluster, you will need to explicitly set
+# ANTREA_PLATFORM=kubernetes when generating resources.
 ifndef ANTREA_PLATFORM
-	ANTREA_PLATFORM=kubernetes
+	ANTREA_PLATFORM=openshift
 endif
 
 ifndef IS_CERTIFICATION
