@@ -1,3 +1,8 @@
+> [!IMPORTANT]
+> This repository is no longer actively maintained.
+> The following fork is part of the Antrea project and under active development:
+> https://github.com/antrea-io/antrea-operator
+
 # Antrea Operator For Kubernetes
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
