@@ -10,12 +10,12 @@ jobs:
     name: Build binary and run unit tests
     runs-on: [ubuntu-latest]
     steps:
-      - name: Set up Go 1.19
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.19
       - name: Check-out code
         uses: actions/checkout@v4
+      - name: Set up Go using version from go.mod
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
       - name: Build antrea-operator binary
         run: make bin
       - name: Run tests
@@ -25,11 +25,11 @@ jobs:
     name: Check tidy
     runs-on: [ubuntu-latest]
     steps:
-      - name: Set up Go 1.19
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.19
       - name: Check-out code
         uses: actions/checkout@v4
+      - name: Set up Go using version from go.mod
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
       - name: Check tidy
         run: make test-tidy

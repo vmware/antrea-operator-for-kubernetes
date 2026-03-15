@@ -32,7 +32,7 @@ Building the antrea operator docker image is very simple. From the project root
 directory simply type the following command.
 
 ```
-make all
+make docker-build
 ```
 
 To build antrea operator binary. Run the following command.

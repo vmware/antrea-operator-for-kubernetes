@@ -50,7 +50,7 @@ PKG_IS_DEFAULT_CHANNEL := --default-channel
 endif
 PKG_MAN_OPTS ?= $(FROM_VERSION) $(PKG_CHANNELS) $(PKG_IS_DEFAULT_CHANNEL)
 
-GOLANGCI_LINT_VERSION := v1.51.0
+GOLANGCI_LINT_VERSION := v1.60.3
 GOLANGCI_LINT_BINDIR  := $(CURDIR)/.golangci-bin
 GOLANGCI_LINT_BIN     := $(GOLANGCI_LINT_BINDIR)/$(GOLANGCI_LINT_VERSION)/golangci-lint
 
@@ -79,11 +79,11 @@ test: generate golangci manifests
 # Build manager binary
 manager:
 	@echo "===> Building antrea-operator binary <==="
-	go build -o bin/manager -ldflags '$(LDFLAGS)' main.go
+	GOOS=linux go build -o bin/manager -ldflags '$(LDFLAGS)' main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate golangci manifests
-	go run -ldflags '$(LDFLAGS)' ./main.go
+	GOOS=linux go run -ldflags '$(LDFLAGS)' ./main.go
 
 # Install CRDs into a cluster
 install: manifests kustomize
@@ -109,7 +109,7 @@ generate: controller-gen
 
 # Build the docker image
 docker-build:
-	docker build -f build/Dockerfile --label version="$(VERSION)" . -t ${IMG}
+	docker build -f build/Dockerfile --platform linux/amd64 --label version="$(VERSION)" . -t ${IMG}
 	docker tag ${IMG} antrea/antrea-operator
 
 CONTROLLER_GEN_VERSION := v0.6.2

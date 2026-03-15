@@ -87,3 +87,5 @@ tags
 .kube
 .kustomize
 .controller-gen
+
+bin/
