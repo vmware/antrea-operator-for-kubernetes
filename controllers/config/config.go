@@ -45,7 +45,7 @@ func fillAgentConfig(clusterConfig *configv1.Network, operConfig *operatorv1.Ant
 	// Set service CIDR.
 	if clusterConfig == nil {
 		if _, ok := antreaAgentConfig[types.ServiceCIDROption]; !ok {
-			return errors.New("serviceCIDR should be specified on kubernetes.")
+			return errors.New("serviceCIDR should be specified on kubernetes")
 		}
 	} else {
 		if serviceCIDR, ok := antreaAgentConfig[types.ServiceCIDROption].(string); !ok {
@@ -235,10 +235,7 @@ func HasClusterNetworkConfigChange(preConfig, curConfig *configv1.Network) bool 
 	for _, clusterNet := range curConfig.Spec.ClusterNetwork {
 		curCIDRs = append(curCIDRs, clusterNet.CIDR)
 	}
-	if !stringSliceEqual(preCIDRs, curCIDRs) {
-		return true
-	}
-	return false
+	return !stringSliceEqual(preCIDRs, curCIDRs)
 }
 
 func HasDefaultMTUChange(preConfig, curConfig *operatorv1.AntreaInstall) (bool, int, error) {
@@ -273,9 +270,7 @@ func HasDefaultMTUChange(preConfig, curConfig *operatorv1.AntreaInstall) (bool, 
 func BuildNetworkStatus(clusterConfig *configv1.Network, defaultMTU int) *configv1.NetworkStatus {
 	// Values extracted from spec are serviceNetwork and clusterNetworkCIDR.
 	status := configv1.NetworkStatus{}
-	for _, snet := range clusterConfig.Spec.ServiceNetwork {
-		status.ServiceNetwork = append(status.ServiceNetwork, snet)
-	}
+	status.ServiceNetwork = append(status.ServiceNetwork, clusterConfig.Spec.ServiceNetwork...)
 
 	for _, cnet := range clusterConfig.Spec.ClusterNetwork {
 		status.ClusterNetwork = append(status.ClusterNetwork,

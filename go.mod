@@ -1,6 +1,6 @@
 module github.com/vmware/antrea-operator-for-kubernetes
 
-go 1.27.1
+go 1.25.0
 
 require (
 	antrea.io/antrea v1.6.0

@@ -10,8 +10,7 @@ BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
 endif
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true"
+CRD_OPTIONS ?= "crd"
 
 # Default to Openshift for the platform, which means for example that the Antrea
 # image will default to antrea-ubi in generate manifests. To use the operator
@@ -50,7 +49,7 @@ PKG_IS_DEFAULT_CHANNEL := --default-channel
 endif
 PKG_MAN_OPTS ?= $(FROM_VERSION) $(PKG_CHANNELS) $(PKG_IS_DEFAULT_CHANNEL)
 
-GOLANGCI_LINT_VERSION := v1.51.0
+GOLANGCI_LINT_VERSION := v2.5.0
 GOLANGCI_LINT_BINDIR  := $(CURDIR)/.golangci-bin
 GOLANGCI_LINT_BIN     := $(GOLANGCI_LINT_BINDIR)/$(GOLANGCI_LINT_VERSION)/golangci-lint
 
@@ -112,7 +111,7 @@ docker-build:
 	docker build -f build/Dockerfile --label version="$(VERSION)" . -t ${IMG}
 	docker tag ${IMG} antrea/antrea-operator
 
-CONTROLLER_GEN_VERSION := v0.6.2
+CONTROLLER_GEN_VERSION := v0.17.3
 CONTROLLER_GEN_BINDIR  := $(CURDIR)/.controller-gen
 CONTROLLER_GEN         := $(CONTROLLER_GEN_BINDIR)/$(CONTROLLER_GEN_VERSION)/controller-gen
 

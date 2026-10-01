@@ -103,7 +103,7 @@ func (status *StatusManager) deleteRelatedObjectsNotRendered(co *configv1.Cluste
 	}
 
 	for _, currentObj := range co.Status.RelatedObjects {
-		var found bool = false
+		var found = false
 		for _, renderedObj := range status.relatedObjects {
 			found = reflect.DeepEqual(currentObj, renderedObj)
 
