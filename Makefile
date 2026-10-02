@@ -10,8 +10,7 @@ BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
 endif
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true"
+CRD_OPTIONS ?= "crd"
 
 # Default to Openshift for the platform, which means for example that the Antrea
 # image will default to antrea-ubi in generate manifests. To use the operator
@@ -50,7 +49,7 @@ PKG_IS_DEFAULT_CHANNEL := --default-channel
 endif
 PKG_MAN_OPTS ?= $(FROM_VERSION) $(PKG_CHANNELS) $(PKG_IS_DEFAULT_CHANNEL)
 
-GOLANGCI_LINT_VERSION := v1.51.0
+GOLANGCI_LINT_VERSION := v2.5.0
 GOLANGCI_LINT_BINDIR  := $(CURDIR)/.golangci-bin
 GOLANGCI_LINT_BIN     := $(GOLANGCI_LINT_BINDIR)/$(GOLANGCI_LINT_VERSION)/golangci-lint
 
@@ -69,12 +68,24 @@ golangci-fix: $(GOLANGCI_LINT_BIN)
 	@echo "===> Running golangci-fix <==="
 	@GOOS=linux $(GOLANGCI_LINT_BIN) run -c $(CURDIR)/.golangci.yml --fix
 
+SETUP_ENVTEST_VERSION := release-0.19
+SETUP_ENVTEST_BINDIR  := $(CURDIR)/.setup-envtest
+SETUP_ENVTEST         := $(SETUP_ENVTEST_BINDIR)/$(SETUP_ENVTEST_VERSION)/setup-envtest
+
+$(SETUP_ENVTEST):
+	@echo "===> Installing setup-envtest <==="
+	@rm -rf $(SETUP_ENVTEST_BINDIR)/* # remove old versions
+	GOBIN=$(SETUP_ENVTEST_BINDIR)/$(SETUP_ENVTEST_VERSION) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@$(SETUP_ENVTEST_VERSION)
+
+.PHONY: setup-envtest
+setup-envtest: $(SETUP_ENVTEST)
+
 # Run tests
+ENVTEST_K8S_VERSION := 1.25.0
 ENVTEST_ASSETS_DIR = $(shell pwd)/testbin
-test: generate golangci manifests
+test: generate golangci manifests $(SETUP_ENVTEST)
 	mkdir -p $(ENVTEST_ASSETS_DIR)
-	test -f $(ENVTEST_ASSETS_DIR)/setup-envtest.sh || curl -sSLo $(ENVTEST_ASSETS_DIR)/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.6.3/hack/setup-envtest.sh
-	source $(ENVTEST_ASSETS_DIR)/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(SETUP_ENVTEST) use $(ENVTEST_K8S_VERSION) -p path --bin-dir $(ENVTEST_ASSETS_DIR))" go test ./... -coverprofile cover.out
 
 # Build manager binary
 manager:
@@ -112,7 +123,7 @@ docker-build:
 	docker build -f build/Dockerfile --label version="$(VERSION)" . -t ${IMG}
 	docker tag ${IMG} antrea/antrea-operator
 
-CONTROLLER_GEN_VERSION := v0.6.2
+CONTROLLER_GEN_VERSION := v0.17.3
 CONTROLLER_GEN_BINDIR  := $(CURDIR)/.controller-gen
 CONTROLLER_GEN         := $(CONTROLLER_GEN_BINDIR)/$(CONTROLLER_GEN_VERSION)/controller-gen
 

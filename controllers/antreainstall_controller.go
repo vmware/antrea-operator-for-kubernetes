@@ -145,7 +145,7 @@ func applyConfig(r *AntreaInstallReconciler, config configutil.Config, clusterCo
 	return reconcile.Result{}, nil
 }
 
-func fetchAntreaInstall(r *AntreaInstallReconciler, request ctrl.Request) (*operatorv1.AntreaInstall, error, bool, bool) {
+func fetchAntreaInstall(r *AntreaInstallReconciler, request ctrl.Request) (*operatorv1.AntreaInstall, bool, bool, error) {
 	// Fetch antrea-install CR.
 	operConfig := &operatorv1.AntreaInstall{}
 	err := r.Client.Default().CRClient().Get(context.TODO(), types.NamespacedName{Namespace: operatortypes.OperatorNameSpace, Name: operatortypes.OperatorConfigName}, operConfig)
@@ -154,19 +154,19 @@ func fetchAntreaInstall(r *AntreaInstallReconciler, request ctrl.Request) (*oper
 			msg := fmt.Sprintf("%s CR not found", operatortypes.OperatorConfigName)
 			log.Info(msg)
 			r.Status.SetDegraded(statusmanager.ClusterConfig, "NoAntreaInstallCR", msg)
-			return nil, err, false, false
+			return nil, false, false, err
 		}
 		log.Error(err, "failed to get antrea-install CR")
 		r.Status.SetDegraded(statusmanager.OperatorConfig, "InvalidAntreaInstallCR", fmt.Sprintf("Failed to get operator CR: %v", err))
-		return nil, err, true, false
+		return nil, true, false, err
 	}
 	if request.Name == operConfig.Name && r.AppliedOperConfig != nil {
 		if reflect.DeepEqual(operConfig.Spec, r.AppliedOperConfig.Spec) {
 			log.Info("no configuration change")
-			return operConfig, nil, true, false
+			return operConfig, true, false, nil
 		}
 	}
-	return operConfig, nil, true, true
+	return operConfig, true, true, nil
 }
 
 func isOperatorRequest(r *AntreaInstallReconciler, request ctrl.Request) bool {
@@ -188,7 +188,7 @@ func (k8s *AdaptorK8s) Reconcile(r *AntreaInstallReconciler, request ctrl.Reques
 	}
 
 	// Fetch antrea-install CR.
-	operConfig, err, found, change := fetchAntreaInstall(r, request)
+	operConfig, found, change, err := fetchAntreaInstall(r, request)
 	if err != nil && !found {
 		return reconcile.Result{}, nil
 	}
@@ -243,7 +243,7 @@ func (oc *AdaptorOc) Reconcile(r *AntreaInstallReconciler, request ctrl.Request)
 	err = r.Client.Default().CRClient().Get(context.TODO(), types.NamespacedName{Name: operatortypes.ClusterOperatorNetworkName}, operatorNetwork)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			r.Status.SetDegraded(statusmanager.OperatorConfig, "NoClusterNetworkOperatorConfig", fmt.Sprintf("Cluster network operator configuration not found"))
+			r.Status.SetDegraded(statusmanager.OperatorConfig, "NoClusterNetworkOperatorConfig", "Cluster network operator configuration not found")
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
@@ -252,7 +252,7 @@ func (oc *AdaptorOc) Reconcile(r *AntreaInstallReconciler, request ctrl.Request)
 	}
 
 	// Fetch antrea-install CR.
-	operConfig, err, found, change := fetchAntreaInstall(r, request)
+	operConfig, found, change, err := fetchAntreaInstall(r, request)
 	if err != nil && !found {
 		return reconcile.Result{}, nil
 	}

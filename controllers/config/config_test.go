@@ -169,8 +169,7 @@ func TestRenderOc(t *testing.T) {
 
 	for _, obj := range objs {
 		if obj.GetKind() == "ConfigMap" && obj.GetNamespace() == "kube-system" && obj.GetName() == "antrea-config" {
-			var data map[string]interface{}
-			data = obj.Object["data"].(map[string]interface{})
+			data := obj.Object["data"].(map[string]interface{})
 			g.Expect(data[operatortypes.AntreaAgentConfigOption]).Should(Equal(operConfig.Spec.AntreaAgentConfig))
 			g.Expect(data[operatortypes.AntreaCNIConfigOption]).Should(Equal(operConfig.Spec.AntreaCNIConfig))
 			g.Expect(data[operatortypes.AntreaControllerConfigOption]).Should(Equal(operConfig.Spec.AntreaControllerConfig))
@@ -202,8 +201,7 @@ func TestRenderK8s(t *testing.T) {
 
 	for _, obj := range objs {
 		if obj.GetKind() == "ConfigMap" && obj.GetNamespace() == "kube-system" && obj.GetName() == "antrea-config" {
-			var data map[string]interface{}
-			data = obj.Object["data"].(map[string]interface{})
+			data := obj.Object["data"].(map[string]interface{})
 			g.Expect(data[operatortypes.AntreaAgentConfigOption]).Should(Equal(operConfig.Spec.AntreaAgentConfig))
 			g.Expect(data[operatortypes.AntreaCNIConfigOption]).Should(Equal(operConfig.Spec.AntreaCNIConfig))
 			g.Expect(data[operatortypes.AntreaControllerConfigOption]).Should(Equal(operConfig.Spec.AntreaControllerConfig))
