@@ -87,3 +87,4 @@ tags
 .kube
 .kustomize
 .controller-gen
+.setup-envtest

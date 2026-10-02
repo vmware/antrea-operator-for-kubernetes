@@ -68,12 +68,24 @@ golangci-fix: $(GOLANGCI_LINT_BIN)
 	@echo "===> Running golangci-fix <==="
 	@GOOS=linux $(GOLANGCI_LINT_BIN) run -c $(CURDIR)/.golangci.yml --fix
 
+SETUP_ENVTEST_VERSION := release-0.19
+SETUP_ENVTEST_BINDIR  := $(CURDIR)/.setup-envtest
+SETUP_ENVTEST         := $(SETUP_ENVTEST_BINDIR)/$(SETUP_ENVTEST_VERSION)/setup-envtest
+
+$(SETUP_ENVTEST):
+	@echo "===> Installing setup-envtest <==="
+	@rm -rf $(SETUP_ENVTEST_BINDIR)/* # remove old versions
+	GOBIN=$(SETUP_ENVTEST_BINDIR)/$(SETUP_ENVTEST_VERSION) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@$(SETUP_ENVTEST_VERSION)
+
+.PHONY: setup-envtest
+setup-envtest: $(SETUP_ENVTEST)
+
 # Run tests
+ENVTEST_K8S_VERSION := 1.25.0
 ENVTEST_ASSETS_DIR = $(shell pwd)/testbin
-test: generate golangci manifests
+test: generate golangci manifests $(SETUP_ENVTEST)
 	mkdir -p $(ENVTEST_ASSETS_DIR)
-	test -f $(ENVTEST_ASSETS_DIR)/setup-envtest.sh || curl -sSLo $(ENVTEST_ASSETS_DIR)/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.6.3/hack/setup-envtest.sh
-	source $(ENVTEST_ASSETS_DIR)/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(SETUP_ENVTEST) use $(ENVTEST_K8S_VERSION) -p path --bin-dir $(ENVTEST_ASSETS_DIR))" go test ./... -coverprofile cover.out
 
 # Build manager binary
 manager:
